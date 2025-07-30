@@ -1,0 +1,15 @@
+Metadata-Version: 2.2
+Name: gentrain
+Version: 0.1.2
+Summary: A example Python package
+Author: Ben Kräling
+Author-email: ben.kraeling@study.hs-duesseldorf.de
+Requires-Dist: biopython
+Requires-Dist: networkx
+Requires-Dist: matplotlib
+Requires-Dist: pandas
+Requires-Dist: numpy
+Dynamic: author
+Dynamic: author-email
+Dynamic: requires-dist
+Dynamic: summary
