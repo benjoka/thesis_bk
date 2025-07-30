@@ -1,1 +1,16 @@
 # Selective Genetic Distance Computation for Visualizing Viral Outbreak Dynamics
+
+## Code base
+
+This repository contains the code base for my Master's thesis, titled 'Selective Genetic Distance Computation for Visualising Viral Outbreak Dynamics'. All of the code in this repository was implemented by me and is structured as follows:
+
+| Directory | Description                                                                                                                                                                                                                                                         |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| results   | Results of the thesis. Scores of _approximate candidate search_ might differ from the concrete scores listed in the thesis, as the procedure does not produce unambiguous results. The order of directories reflects the order results are discussed in the thesis. |
+| gendisc   | Golang package that implements the GENTRAIN algorithm to calculate genetic distances. When executed with --fast the optimized algorithm is executed, as proposed in the thesis.                                                                                     |
+| gentrain  | Python module with the implementations of the approaches proposed in the thesis and several helper functions for evaluation purposes.                                                                                                                               |
+| latex     | Latex files of the thesis.                                                                                                                                                                                                                                          |
+
+## Abstract
+
+The growing significance of outbreak analysis, in conjunction with enhanced genome sequence availability, necessitates the development of user-oriented applications that facilitate genetic outbreak analysis for non-specialists. However, the computational effort involved in visualizing genetic outbreak dynamics increases significantly with the number of sequences. To make large-scale viral outbreak analysis accessible for user-oriented applications, this work aims to reduce the effort required to visualize outbreak dynamics while preserving interpretability. Key contributions include the algorithmic optimization of single genetic distance calculations and the selective calculation of genetic distance matrices through genetic distance approximation and approximate nearest neighbor searches. The preserved interpretability of outbreak visualizations was assessed with regard to the maintained representation of infection chains and outbreak contexts for various seasonal and geographic data aggregates. The findings indicate that the proposed approaches exhibit a high degree of accuracy in preserving infection chains and outbreak-related sequence clusters, while significantly reducing the necessary runtime. In general, longer seasonal periods and wider geographic areas tend to yield superior preservation of outbreak characteristics.
