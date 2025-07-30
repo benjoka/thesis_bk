@@ -2,7 +2,7 @@
 
 ## Code base
 
-This repository contains the code base for my Master's thesis, titled 'Selective Genetic Distance Computation for Visualising Viral Outbreak Dynamics'. All of the code in this repository was implemented by me and is structured as follows:
+This repository contains the code base for my Master's thesis, titled 'Selective Genetic Distance Computation for Visualising Viral Outbreak Dynamics'. All of the code in this repository was self-implemented and is structured as follows:
 
 | Directory | Description                                                                                                                                                                                                                                                         |
 | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
