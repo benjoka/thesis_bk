@@ -2205,7 +2205,7 @@
         "kind": 2,
         "importPath": "gentrain.gentrain.candidate_sourcing",
         "description": "gentrain.gentrain.candidate_sourcing",
-        "peekOfCode": "def get_hnsw_candidates(\n    encodings, limit, search_method=\"depth\", print_execution_time=True\n):\n    start = time.time()\n    dim = 128\n    num_elements = len(encodings)\n    data = np.float32(np.array(list(encodings.values())))\n    ids = np.arange(len(data))\n    index = hnswlib.Index(space = 'l2', dim = len(data[0]))\n    index.init_index(max_elements = num_elements, ef_construction = 200, M = 16)",
+        "peekOfCode": "def get_hnsw_candidates(\n    encodings, limit, search_method=\"depth\", print_execution_time=True\n):\n    start = time.time()\n    dim = 128\n    num_elements = len(encodings)\n    data = np.float32(np.array(list(encodings.values())))\n    ids = np.arange(len(data))\n    index = hnswlib.Index(space = \"l2\", dim = len(data[0]))\n    index.init_index(max_elements = num_elements, ef_construction = 200, M = 16)",
         "detail": "gentrain.gentrain.candidate_sourcing",
         "documentation": {}
     },
@@ -2250,7 +2250,7 @@
         "kind": 2,
         "importPath": "gentrain.gentrain.distance_calculation",
         "description": "gentrain.gentrain.distance_calculation",
-        "peekOfCode": "def prepend_manual(values, arr):\n    values = np.atleast_1d(values)\n    new_arr = np.empty(len(arr) + len(values), dtype=arr.dtype)\n    new_arr[:len(values)] = values\n    new_arr[len(values):] = arr\n    return new_arr\ndef get_mutation_positions(sequence_mutations):\n    mutation_positions = {}\n    for substitution in sequence_mutations[\"substitutions\"]:\n        match = re.match(r'^([A-Z])(\\d+)([A-Z])$', substitution)",
+        "peekOfCode": "def prepend_manual(values, arr):\n    values = np.atleast_1d(values)\n    new_arr = np.empty(len(arr) + len(values), dtype=arr.dtype)\n    new_arr[:len(values)] = values\n    new_arr[len(values):] = arr\n    return new_arr\ndef get_mutation_positions(sequence_mutations):\n    mutation_positions = {}\n    for substitution in sequence_mutations[\"substitutions\"]:\n        match = re.match(r\"^([A-Z])(\\d+)([A-Z])$\", substitution)",
         "detail": "gentrain.gentrain.distance_calculation",
         "documentation": {}
     },
@@ -2259,7 +2259,7 @@
         "kind": 2,
         "importPath": "gentrain.gentrain.distance_calculation",
         "description": "gentrain.gentrain.distance_calculation",
-        "peekOfCode": "def get_mutation_positions(sequence_mutations):\n    mutation_positions = {}\n    for substitution in sequence_mutations[\"substitutions\"]:\n        match = re.match(r'^([A-Z])(\\d+)([A-Z])$', substitution)\n        position = int(match.group(2))\n        character = match.group(3)\n        if position not in mutation_positions:\n            mutation_positions[position] = {}\n        mutation_positions[position][\"snp\"] = character\n    for insertion in sequence_mutations[\"insertions\"]:",
+        "peekOfCode": "def get_mutation_positions(sequence_mutations):\n    mutation_positions = {}\n    for substitution in sequence_mutations[\"substitutions\"]:\n        match = re.match(r\"^([A-Z])(\\d+)([A-Z])$\", substitution)\n        position = int(match.group(2))\n        character = match.group(3)\n        if position not in mutation_positions:\n            mutation_positions[position] = {}\n        mutation_positions[position][\"snp\"] = character\n    for insertion in sequence_mutations[\"insertions\"]:",
         "detail": "gentrain.gentrain.distance_calculation",
         "documentation": {}
     },
@@ -2394,7 +2394,7 @@
         "kind": 2,
         "importPath": "gentrain.gentrain.encoding",
         "description": "gentrain.gentrain.encoding",
-        "peekOfCode": "def get_missing_positions(mutations):\n    missing_positions = []\n    for missing in mutations[\"missing\"]:\n        match = re.match(r'^(\\d+)(?:-(\\d+))?$', missing)\n        start = int(match.group(1))\n        end = int(match.group(2)) + 1 if match.group(2) else start + 1\n        for position in range(start,end):  \n            if position >= mutations[\"alignmentStart\"] or position <= mutations[\"alignmentEnd\"]:\n                missing_positions.append(position)\n    return missing_positions",
+        "peekOfCode": "def get_missing_positions(mutations):\n    missing_positions = []\n    for missing in mutations[\"missing\"]:\n        match = re.match(r\"^(\\d+)(?:-(\\d+))?$\", missing)\n        start = int(match.group(1))\n        end = int(match.group(2)) + 1 if match.group(2) else start + 1\n        for position in range(start,end):  \n            if position >= mutations[\"alignmentStart\"] or position <= mutations[\"alignmentEnd\"]:\n                missing_positions.append(position)\n    return missing_positions",
         "detail": "gentrain.gentrain.encoding",
         "documentation": {}
     },
@@ -2412,7 +2412,7 @@
         "kind": 2,
         "importPath": "gentrain.gentrain.encoding",
         "description": "gentrain.gentrain.encoding",
-        "peekOfCode": "def find_and_shift_relevant_mutation_positions(mutations, isolates_df, minified_aligned_sequences, shifted_reference_positions, exclude_indels, use_frequency_filtering):\n    # filter substitions by relevance based on observed behaviours in MST constellations\n    substitution_counts = mutations['substitutions'].explode().value_counts().reset_index()\n    if use_frequency_filtering:\n        substitution_counts = substitution_counts[(substitution_counts[\"count\"]/len(isolates_df) < 0.2) & (substitution_counts[\"count\"] > 1)]\n    relevant_substitution_positions = list(substitution_counts[\"substitutions\"].apply(lambda x: int(re.match(r'^([A-Z])(\\d+)([A-Z])$', x).group(2))))\n    shifted_relevant_substitution_positions = [shifted_reference_positions[position] for position in relevant_substitution_positions]\n    if exclude_indels:\n        relevant_substitution_positions.sort()\n        relevant_shifted_substitutions = minified_aligned_sequences[shifted_relevant_substitution_positions]",
+        "peekOfCode": "def find_and_shift_relevant_mutation_positions(mutations, isolates_df, minified_aligned_sequences, shifted_reference_positions, exclude_indels, use_frequency_filtering):\n    # filter substitions by relevance based on observed behaviours in MST constellations\n    substitution_counts = mutations[\"substitutions\"].explode().value_counts().reset_index()\n    if use_frequency_filtering:\n        substitution_counts = substitution_counts[(substitution_counts[\"count\"]/len(isolates_df) < 0.2) & (substitution_counts[\"count\"] > 1)]\n    relevant_substitution_positions = list(substitution_counts[\"substitutions\"].apply(lambda x: int(re.match(r\"^([A-Z])(\\d+)([A-Z])$\", x).group(2))))\n    shifted_relevant_substitution_positions = [shifted_reference_positions[position] for position in relevant_substitution_positions]\n    if exclude_indels:\n        relevant_substitution_positions.sort()\n        relevant_shifted_substitutions = minified_aligned_sequences[shifted_relevant_substitution_positions]",
         "detail": "gentrain.gentrain.encoding",
         "documentation": {}
     },
@@ -2421,7 +2421,7 @@
         "kind": 2,
         "importPath": "gentrain.gentrain.encoding",
         "description": "gentrain.gentrain.encoding",
-        "peekOfCode": "def get_inserted_lengths(unique_insertion_list):\n    inserted_lengths = {}\n    for insertion in unique_insertion_list:\n        regex_result = re.findall(r'[0-9]+|:|[A-Za-z]+', insertion)\n        position = int(regex_result[0])\n        inserted_chars = regex_result[2]\n        if position not in inserted_lengths or position not in inserted_lengths and len(inserted_lengths[position]) < len(inserted_chars):\n            inserted_lengths[position] = 1\n    return dict(sorted(inserted_lengths.items()))\ndef get_shifted_reference_positions(unique_insertion_list):",
+        "peekOfCode": "def get_inserted_lengths(unique_insertion_list):\n    inserted_lengths = {}\n    for insertion in unique_insertion_list:\n        regex_result = re.findall(r\"[0-9]+|:|[A-Za-z]+\", insertion)\n        position = int(regex_result[0])\n        inserted_chars = regex_result[2]\n        if position not in inserted_lengths or position not in inserted_lengths and len(inserted_lengths[position]) < len(inserted_chars):\n            inserted_lengths[position] = 1\n    return dict(sorted(inserted_lengths.items()))\ndef get_shifted_reference_positions(unique_insertion_list):",
         "detail": "gentrain.gentrain.encoding",
         "documentation": {}
     },
@@ -2448,7 +2448,7 @@
         "kind": 2,
         "importPath": "gentrain.gentrain.encoding",
         "description": "gentrain.gentrain.encoding",
-        "peekOfCode": "def get_aligned_mutation_dict(row, aligned_reference, shifted_reference_positions, exclude_indels=False):\n    aligned_sequence = {i: 0 for i in range(1, len(aligned_reference)+1)}\n    for substitution in row[\"substitutions\"]:\n        match = re.match(r'^([A-Z])(\\d+)([A-Z])$', substitution)\n        position = int(match.group(2))\n        aligned_sequence[shifted_reference_positions[position]] = 1\n    if exclude_indels:\n        return aligned_sequence\n    for insertion in row[\"insertions\"]:\n        match = re.match(r'^(\\d+):([A-Z]+)$', insertion)",
+        "peekOfCode": "def get_aligned_mutation_dict(row, aligned_reference, shifted_reference_positions, exclude_indels=False):\n    aligned_sequence = {i: 0 for i in range(1, len(aligned_reference)+1)}\n    for substitution in row[\"substitutions\"]:\n        match = re.match(r\"^([A-Z])(\\d+)([A-Z])$\", substitution)\n        position = int(match.group(2))\n        aligned_sequence[shifted_reference_positions[position]] = 1\n    if exclude_indels:\n        return aligned_sequence\n    for insertion in row[\"insertions\"]:\n        match = re.match(r\"^(\\d+):([A-Z]+)$\", insertion)",
         "detail": "gentrain.gentrain.encoding",
         "documentation": {}
     },
@@ -2457,7 +2457,7 @@
         "kind": 2,
         "importPath": "gentrain.gentrain.encoding",
         "description": "gentrain.gentrain.encoding",
-        "peekOfCode": "def get_aligned_nucleotide_dict(row, aligned_reference, shifted_reference_positions, exclude_indels=False):\n    aligned_sequence = aligned_reference.copy()\n    for substitution in row[\"substitutions\"]:\n        match = re.match(r'^([A-Z])(\\d+)([A-Z])$', substitution)\n        position = int(match.group(2))\n        character = match.group(3)\n        aligned_sequence[shifted_reference_positions[position]] = character\n    if exclude_indels:\n        return aligned_sequence\n    for insertion in row[\"insertions\"]:",
+        "peekOfCode": "def get_aligned_nucleotide_dict(row, aligned_reference, shifted_reference_positions, exclude_indels=False):\n    aligned_sequence = aligned_reference.copy()\n    for substitution in row[\"substitutions\"]:\n        match = re.match(r\"^([A-Z])(\\d+)([A-Z])$\", substitution)\n        position = int(match.group(2))\n        character = match.group(3)\n        aligned_sequence[shifted_reference_positions[position]] = character\n    if exclude_indels:\n        return aligned_sequence\n    for insertion in row[\"insertions\"]:",
         "detail": "gentrain.gentrain.encoding",
         "documentation": {}
     },
@@ -2520,7 +2520,7 @@
         "kind": 5,
         "importPath": "gentrain.gentrain.encoding",
         "description": "gentrain.gentrain.encoding",
-        "peekOfCode": "reference_sequence = \"\"\nreference_fasta_bytes = pkgutil.get_data(__package__, \"reference.fasta\")\nreference_fasta_io = StringIO(reference_fasta_bytes.decode())\nfor record in SeqIO.parse(reference_fasta_io, \"fasta\"):\n    reference_sequence = str(record.seq)\n    reference_sequence_array = np.array(list(reference_sequence), dtype=str)\ndef get_missing_positions(mutations):\n    missing_positions = []\n    for missing in mutations[\"missing\"]:\n        match = re.match(r'^(\\d+)(?:-(\\d+))?$', missing)",
+        "peekOfCode": "reference_sequence = \"\"\nreference_fasta_bytes = pkgutil.get_data(__package__, \"reference.fasta\")\nreference_fasta_io = StringIO(reference_fasta_bytes.decode())\nfor record in SeqIO.parse(reference_fasta_io, \"fasta\"):\n    reference_sequence = str(record.seq)\n    reference_sequence_array = np.array(list(reference_sequence), dtype=str)\ndef get_missing_positions(mutations):\n    missing_positions = []\n    for missing in mutations[\"missing\"]:\n        match = re.match(r\"^(\\d+)(?:-(\\d+))?$\", missing)",
         "detail": "gentrain.gentrain.encoding",
         "documentation": {}
     },
@@ -2529,7 +2529,7 @@
         "kind": 5,
         "importPath": "gentrain.gentrain.encoding",
         "description": "gentrain.gentrain.encoding",
-        "peekOfCode": "reference_fasta_bytes = pkgutil.get_data(__package__, \"reference.fasta\")\nreference_fasta_io = StringIO(reference_fasta_bytes.decode())\nfor record in SeqIO.parse(reference_fasta_io, \"fasta\"):\n    reference_sequence = str(record.seq)\n    reference_sequence_array = np.array(list(reference_sequence), dtype=str)\ndef get_missing_positions(mutations):\n    missing_positions = []\n    for missing in mutations[\"missing\"]:\n        match = re.match(r'^(\\d+)(?:-(\\d+))?$', missing)\n        start = int(match.group(1))",
+        "peekOfCode": "reference_fasta_bytes = pkgutil.get_data(__package__, \"reference.fasta\")\nreference_fasta_io = StringIO(reference_fasta_bytes.decode())\nfor record in SeqIO.parse(reference_fasta_io, \"fasta\"):\n    reference_sequence = str(record.seq)\n    reference_sequence_array = np.array(list(reference_sequence), dtype=str)\ndef get_missing_positions(mutations):\n    missing_positions = []\n    for missing in mutations[\"missing\"]:\n        match = re.match(r\"^(\\d+)(?:-(\\d+))?$\", missing)\n        start = int(match.group(1))",
         "detail": "gentrain.gentrain.encoding",
         "documentation": {}
     },
@@ -2538,7 +2538,7 @@
         "kind": 5,
         "importPath": "gentrain.gentrain.encoding",
         "description": "gentrain.gentrain.encoding",
-        "peekOfCode": "reference_fasta_io = StringIO(reference_fasta_bytes.decode())\nfor record in SeqIO.parse(reference_fasta_io, \"fasta\"):\n    reference_sequence = str(record.seq)\n    reference_sequence_array = np.array(list(reference_sequence), dtype=str)\ndef get_missing_positions(mutations):\n    missing_positions = []\n    for missing in mutations[\"missing\"]:\n        match = re.match(r'^(\\d+)(?:-(\\d+))?$', missing)\n        start = int(match.group(1))\n        end = int(match.group(2)) + 1 if match.group(2) else start + 1",
+        "peekOfCode": "reference_fasta_io = StringIO(reference_fasta_bytes.decode())\nfor record in SeqIO.parse(reference_fasta_io, \"fasta\"):\n    reference_sequence = str(record.seq)\n    reference_sequence_array = np.array(list(reference_sequence), dtype=str)\ndef get_missing_positions(mutations):\n    missing_positions = []\n    for missing in mutations[\"missing\"]:\n        match = re.match(r\"^(\\d+)(?:-(\\d+))?$\", missing)\n        start = int(match.group(1))\n        end = int(match.group(2)) + 1 if match.group(2) else start + 1",
         "detail": "gentrain.gentrain.encoding",
         "documentation": {}
     },
@@ -2646,7 +2646,7 @@
         "kind": 2,
         "importPath": "gentrain.gentrain.graph",
         "description": "gentrain.gentrain.graph",
-        "peekOfCode": "def get_outbreak_community_labels(graph, distance_threshold = None):\n    graph_copy = graph.copy()\n    if distance_threshold:\n        edges_to_remove = [(u, v) for u, v, d in graph_copy.edges(data=True) if d['weight'] > distance_threshold]\n        graph_copy.remove_edges_from(edges_to_remove)\n    partition = community_louvain.best_partition(graph_copy, random_state=42)\n    community_labels = list(partition.values())\n    return community_labels\ndef get_connected_component_labels(mst, distance_threshold = 1):\n    mst_copy = mst.copy()",
+        "peekOfCode": "def get_outbreak_community_labels(graph, distance_threshold = None):\n    graph_copy = graph.copy()\n    if distance_threshold:\n        edges_to_remove = [(u, v) for u, v, d in graph_copy.edges(data=True) if d[\"weight\"] > distance_threshold]\n        graph_copy.remove_edges_from(edges_to_remove)\n    partition = community_louvain.best_partition(graph_copy, random_state=42)\n    community_labels = list(partition.values())\n    return community_labels\ndef get_connected_component_labels(mst, distance_threshold = 1):\n    mst_copy = mst.copy()",
         "detail": "gentrain.gentrain.graph",
         "documentation": {}
     },
@@ -2655,7 +2655,7 @@
         "kind": 2,
         "importPath": "gentrain.gentrain.graph",
         "description": "gentrain.gentrain.graph",
-        "peekOfCode": "def get_connected_component_labels(mst, distance_threshold = 1):\n    mst_copy = mst.copy()\n    edges_to_remove = [(u, v) for u, v, d in mst_copy.edges(data=True) if d['weight'] > distance_threshold]\n    mst_copy.remove_edges_from(edges_to_remove)\n    communities = list(nx.connected_components(mst_copy))\n    outbreak_communities = sorted(communities, key=len, reverse=True)\n    community_labels = {}\n    for community_id, community_nodes in enumerate(outbreak_communities):\n        for node_id in community_nodes:\n            community_labels[node_id] = community_id",
+        "peekOfCode": "def get_connected_component_labels(mst, distance_threshold = 1):\n    mst_copy = mst.copy()\n    edges_to_remove = [(u, v) for u, v, d in mst_copy.edges(data=True) if d[\"weight\"] > distance_threshold]\n    mst_copy.remove_edges_from(edges_to_remove)\n    communities = list(nx.connected_components(mst_copy))\n    outbreak_communities = sorted(communities, key=len, reverse=True)\n    community_labels = {}\n    for community_id, community_nodes in enumerate(outbreak_communities):\n        for node_id in community_nodes:\n            community_labels[node_id] = community_id",
         "detail": "gentrain.gentrain.graph",
         "documentation": {}
     },
@@ -2747,114 +2747,6 @@
         "description": "gentrain.gentrain.nextclade",
         "peekOfCode": "reference_fasta_io = StringIO(reference_fasta_bytes.decode())\nfor record in SeqIO.parse(reference_fasta_io, \"fasta\"):\n    reference_sequence = str(record.seq)\ndef get_mutations_from_dataframe(dataframe):\n    mutations = dataframe[\n        [\"substitutions\", \"insertions\", \"deletions\", \"missing\", \"nonACGTNs\"]]\n    mutations = mutations.apply(lambda col: col.map(lambda x: x.split(\",\") if isinstance(x, str) else []))\n    return mutations\ndef get_mutations_from_csv(csv_path):\n    dataframe = pd.read_csv(csv_path, delimiter=\";\", low_memory=False)",
         "detail": "gentrain.gentrain.nextclade",
-        "documentation": {}
-    },
-    {
-        "label": "get_lsh_hash",
-        "kind": 2,
-        "importPath": "gentrain.gentrain.xor",
-        "description": "gentrain.gentrain.xor",
-        "peekOfCode": "def get_lsh_hash(binary_vector, random_indices):\n    sampled_bits = [binary_vector[i] for i in random_indices]\n    hash_value = \"\".join(map(str, sampled_bits))\n    return hash_value\ndef add_to_lsh_table(lsh_table, vector_id, vector, random_indices):\n    bucket_id = get_lsh_hash(vector, random_indices)\n    if bucket_id not in lsh_table:\n        lsh_table[bucket_id] = []\n    if vector_id not in lsh_table[bucket_id]:\n        lsh_table[bucket_id].append(vector_id)",
-        "detail": "gentrain.gentrain.xor",
-        "documentation": {}
-    },
-    {
-        "label": "add_to_lsh_table",
-        "kind": 2,
-        "importPath": "gentrain.gentrain.xor",
-        "description": "gentrain.gentrain.xor",
-        "peekOfCode": "def add_to_lsh_table(lsh_table, vector_id, vector, random_indices):\n    bucket_id = get_lsh_hash(vector, random_indices)\n    if bucket_id not in lsh_table:\n        lsh_table[bucket_id] = []\n    if vector_id not in lsh_table[bucket_id]:\n        lsh_table[bucket_id].append(vector_id)\n    return lsh_table\ndef xor_lsh_dynamic(vectors_dict, forced_computation_rate):\n    start = time.time()\n    vectors_dict = vectors_dict.copy()",
-        "detail": "gentrain.gentrain.xor",
-        "documentation": {}
-    },
-    {
-        "label": "xor_lsh_dynamic",
-        "kind": 2,
-        "importPath": "gentrain.gentrain.xor",
-        "description": "gentrain.gentrain.xor",
-        "peekOfCode": "def xor_lsh_dynamic(vectors_dict, forced_computation_rate):\n    start = time.time()\n    vectors_dict = vectors_dict.copy()\n    total_distance_count = (len(vectors_dict) * (len(vectors_dict) - 1)) / 2\n    first_key = next(iter(vectors_dict))\n    vector_length = len(vectors_dict[first_key])\n    candidates = {vector_id: [] for vector_id in vectors_dict}\n    computation_rate = 0\n    iterations = 0\n    considered_distance_count = 0",
-        "detail": "gentrain.gentrain.xor",
-        "documentation": {}
-    },
-    {
-        "label": "xor_lsh_hash_length",
-        "kind": 2,
-        "importPath": "gentrain.gentrain.xor",
-        "description": "gentrain.gentrain.xor",
-        "peekOfCode": "def xor_lsh_hash_length(vectors_dict, hash_length, min_learning_rate):\n    start = time.time()\n    vectors_dict = vectors_dict.copy()\n    total_distance_count = (len(vectors_dict) * (len(vectors_dict) - 1)) / 2\n    first_key = next(iter(vectors_dict))\n    vector_length = len(vectors_dict[first_key])\n    candidates = {vector_id: [] for vector_id in vectors_dict}\n    computation_rate = 0\n    considered_distance_count = 0\n    learning_rate_saturation = 0",
-        "detail": "gentrain.gentrain.xor",
-        "documentation": {}
-    },
-    {
-        "label": "xor_lsh_candidates",
-        "kind": 2,
-        "importPath": "gentrain.gentrain.xor",
-        "description": "gentrain.gentrain.xor",
-        "peekOfCode": "def xor_lsh_candidates(vectors_dict, hash_lengths, min_learning_rates):\n    lsh_candidates = {}\n    runtime = {}\n    for hash_length in hash_lengths:\n        lsh_candidates[hash_length] = {}\n        runtime[hash_length] = {}\n        for min_learning_rate in min_learning_rates:\n            lsh_candidates[hash_length][min_learning_rate], runtime[hash_length][\"runtime\"] = xor_lsh(vectors_dict,\n                                                                                                      hash_length,\n                                                                                                      min_learning_rate)",
-        "detail": "gentrain.gentrain.xor",
-        "documentation": {}
-    },
-    {
-        "label": "get_k_nearest_neighbors",
-        "kind": 2,
-        "importPath": "gentrain.gentrain.xor",
-        "description": "gentrain.gentrain.xor",
-        "peekOfCode": "def get_k_nearest_neighbors(vectors_dict, k):\n    start = time.time()\n    first_key = next(iter(vectors_dict))\n    vector_length = len(vectors_dict[first_key])\n    index = faiss.IndexFlatL2(vector_length)\n    index.add(np.array(list(vectors_dict.values()), dtype=np.float32))\n    candidates = {}\n    for vector_id, vector in vectors_dict.items():\n        _, faiss_candidates = index.search(np.array([vector]), k)\n        candidates[vector_id] = faiss_candidates[0]",
-        "detail": "gentrain.gentrain.xor",
-        "documentation": {}
-    },
-    {
-        "label": "faiss_cluster_candidates",
-        "kind": 2,
-        "importPath": "gentrain.gentrain.xor",
-        "description": "gentrain.gentrain.xor",
-        "peekOfCode": "def faiss_cluster_candidates(vectors_dict, limit, cluster_labels, index, candidates):\n    candidate_tuples_with_distances = {}\n    fallback_tuples_with_distances = {}\n    for vector_id, vector in vectors_dict.items():\n        faiss_distances, faiss_candidates = index.search(np.array([vector]), len(vectors_dict))\n        filtered_distances = []\n        filtered_candidates = []\n        for candidate_index, candidate in enumerate(faiss_candidates[0]):\n            if cluster_labels[vector_id] != -1 and cluster_labels[vector_id] == cluster_labels[candidate]:\n                filtered_distances.append(faiss_distances[0][candidate_index])",
-        "detail": "gentrain.gentrain.xor",
-        "documentation": {}
-    },
-    {
-        "label": "faiss_depth_search",
-        "kind": 2,
-        "importPath": "gentrain.gentrain.xor",
-        "description": "gentrain.gentrain.xor",
-        "peekOfCode": "def faiss_depth_search(vectors_dict, limit, index):\n    candidates = {}\n    distances = []\n    candidate_tuples_with_distances = {}\n    for vector_id, vector in vectors_dict.items():\n        faiss_distances, faiss_candidates = index.search(np.array([vector]), len(vectors_dict))\n        vector_distances = {}\n        for candidate_index, distance in enumerate(faiss_distances[0]):\n            candidate_id = faiss_candidates[0][candidate_index]\n            vector_distances[candidate_id] = distance",
-        "detail": "gentrain.gentrain.xor",
-        "documentation": {}
-    },
-    {
-        "label": "faiss_breadth_search",
-        "kind": 2,
-        "importPath": "gentrain.gentrain.xor",
-        "description": "gentrain.gentrain.xor",
-        "peekOfCode": "def faiss_breadth_search(vectors_dict, limit, index):\n    candidates = {}\n    distances = []\n    candidate_tuples_with_distances = {}\n    for vector_id, vector in vectors_dict.items():\n        faiss_distances, faiss_candidates = index.search(np.array([vector]), len(vectors_dict))\n        vector_distances = {}\n        for candidate_index, distance in enumerate(faiss_distances[0]):\n            candidate_id = faiss_candidates[0][candidate_index]\n            vector_distances[candidate_id] = distance",
-        "detail": "gentrain.gentrain.xor",
-        "documentation": {}
-    },
-    {
-        "label": "k_faiss_exact_cluster_search_candidates",
-        "kind": 2,
-        "importPath": "gentrain.gentrain.xor",
-        "description": "gentrain.gentrain.xor",
-        "peekOfCode": "def k_faiss_exact_cluster_search_candidates(vectors_dict, limit, cluster_labels, centroid_ids, print_execution_time=True):\n    start = time.time()\n    candidates = {}\n    for centroid_id in centroid_ids:\n        candidates[centroid_id] = [x for x in centroid_ids if x != centroid_id]\n    first_key = next(iter(vectors_dict))\n    vector_length = len(vectors_dict[first_key])\n    index = faiss.IndexFlatL2(vector_length)\n    index.add(np.array(list(vectors_dict.values()), dtype=np.float32))\n    candidates = faiss_cluster_candidates(vectors_dict, limit, cluster_labels, index, candidates)",
-        "detail": "gentrain.gentrain.xor",
-        "documentation": {}
-    },
-    {
-        "label": "faiss_l2_candidates",
-        "kind": 2,
-        "importPath": "gentrain.gentrain.xor",
-        "description": "gentrain.gentrain.xor",
-        "peekOfCode": "def faiss_l2_candidates(vectors_dict, limit, search_method=\"depth\", print_execution_time=True):\n    start = time.time()\n    first_key = next(iter(vectors_dict))\n    vector_length = len(vectors_dict[first_key])\n    index = faiss.IndexFlatL2(vector_length)\n    index.add(np.array(list(vectors_dict.values()), dtype=np.float32))\n    if search_method == \"breadth\":\n        candidates = faiss_breadth_search(encodings, limit, index)\n    else:\n        candidates = faiss_depth_search(encodings, limit, index)",
-        "detail": "gentrain.gentrain.xor",
-        "documentation": {}
-    },
-    {
-        "label": "faiss_hamming_candidates",
-        "kind": 2,
-        "importPath": "gentrain.gentrain.xor",
-        "description": "gentrain.gentrain.xor",
-        "peekOfCode": "def faiss_hamming_candidates(vectors_dict, limit, search_method=\"depth\", print_execution_time=True):\n    start = time.time()\n    first_key = next(iter(vectors_dict))\n    vector_length = len(vectors_dict[first_key])\n    index = faiss.IndexBinaryFlat(vector_length*8)\n    index.add(np.array(list(vectors_dict.values())))\n    if search_method == \"breadth\":\n        candidates, distances = faiss_breadth_search(vectors_dict, limit, index)\n    else:\n        candidates, distances = faiss_depth_search(vectors_dict, limit, index)",
-        "detail": "gentrain.gentrain.xor",
         "documentation": {}
     }
 ]
