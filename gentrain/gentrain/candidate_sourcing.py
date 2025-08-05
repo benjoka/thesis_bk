@@ -100,7 +100,7 @@ def bitwise_xor_candidates(
     vectors_dict, limit, search_method="depth", print_execution_time=True
 ):
     start = time.time()
-g    packed_vectors = np.packbits(np.array(list(vectors_dict.values())), axis=1)
+    packed_vectors = np.packbits(np.array(list(vectors_dict.values())), axis=1)
     if search_method == "breadth":
         candidates = breadth_bitwise_xor_candidates(vectors_dict, limit, packed_vectors)
     else:
