@@ -6,6 +6,29 @@ import hnswlib
 from collections import defaultdict
 from itertools import combinations
 
+def and_or_lsh(encodings, hash_length, iterations):
+    start = time.time()
+    candidates = defaultdict(set)
+    vector_length = len(next(iter(encodings.values())))
+    for iteration in range(iterations):
+        hash_function = random.sample(range(vector_length), hash_length)
+        lsh_table = defaultdict(list)
+
+        for index, encoding in encodings.items():
+            sampled_bits = [encoding[i] for i in hash_function]
+            hash_value = tuple(sampled_bits)
+            lsh_table[hash_value].append(index)
+
+        for indices in lsh_table.values():
+            for a, b in combinations(indices, 2):
+                candidates[a].add(b)
+                candidates[b].add(a)
+
+    candidates = {k: sorted(v) for k, v in sorted(candidates.items())}
+    end = time.time()
+    print(f"xor lsh execution time: {round((end - start), 2)}")
+    return candidates
+
 def get_hnsw_candidates(
     encodings, limit, print_execution_time=True
 ):
@@ -100,6 +123,7 @@ def bitwise_xor_candidates(
     vectors_dict, limit, search_method="depth", print_execution_time=True
 ):
     start = time.time()
+    first_key = next(iter(vectors_dict))
     packed_vectors = np.packbits(np.array(list(vectors_dict.values())), axis=1)
     if search_method == "breadth":
         candidates = breadth_bitwise_xor_candidates(vectors_dict, limit, packed_vectors)
