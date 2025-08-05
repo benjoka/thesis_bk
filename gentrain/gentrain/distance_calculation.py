@@ -41,21 +41,21 @@ def prepend_manual(values, arr):
 def get_mutation_positions(sequence_mutations):
     mutation_positions = {}
     for substitution in sequence_mutations["substitutions"]:
-        match = re.match(r'^([A-Z])(\d+)([A-Z])$', substitution)
+        match = re.match(r"^([A-Z])(\d+)([A-Z])$", substitution)
         position = int(match.group(2))
         character = match.group(3)
         if position not in mutation_positions:
             mutation_positions[position] = {}
         mutation_positions[position]["snp"] = character
     for insertion in sequence_mutations["insertions"]:
-        match = re.match(r'^(\d+):([A-Z]+)$', insertion)
+        match = re.match(r"^(\d+):([A-Z]+)$", insertion)
         position = int(match.group(1))
         characters = list(match.group(2))
         if position not in mutation_positions:
             mutation_positions[position] = {}
-        mutation_positions[position]["ins"] = ''.join(characters)
+        mutation_positions[position]["ins"] = "".join(characters)
     for deletion in sequence_mutations["deletions"]:
-        match = re.match(r'^(\d+)(?:-(\d+))?$', deletion)
+        match = re.match(r"^(\d+)(?:-(\d+))?$", deletion)
         deletion_start = int(match.group(1))
         deletion_end = int(match.group(2)) if match.group(2) else int(match.group(1))
         for position in range(deletion_start, deletion_end + 1):

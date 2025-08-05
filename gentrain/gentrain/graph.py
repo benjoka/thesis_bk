@@ -7,7 +7,7 @@ import time
 def get_outbreak_community_labels(graph, distance_threshold = None):
     graph_copy = graph.copy()
     if distance_threshold:
-        edges_to_remove = [(u, v) for u, v, d in graph_copy.edges(data=True) if d['weight'] > distance_threshold]
+        edges_to_remove = [(u, v) for u, v, d in graph_copy.edges(data=True) if d["weight"] > distance_threshold]
         graph_copy.remove_edges_from(edges_to_remove)
     partition = community_louvain.best_partition(graph_copy, random_state=42)
     community_labels = list(partition.values())
@@ -15,7 +15,7 @@ def get_outbreak_community_labels(graph, distance_threshold = None):
 
 def get_connected_component_labels(mst, distance_threshold = 1):
     mst_copy = mst.copy()
-    edges_to_remove = [(u, v) for u, v, d in mst_copy.edges(data=True) if d['weight'] > distance_threshold]
+    edges_to_remove = [(u, v) for u, v, d in mst_copy.edges(data=True) if d["weight"] > distance_threshold]
     mst_copy.remove_edges_from(edges_to_remove)
     communities = list(nx.connected_components(mst_copy))
     outbreak_communities = sorted(communities, key=len, reverse=True)

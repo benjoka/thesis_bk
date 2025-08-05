@@ -57,9 +57,9 @@ var ambiguousCharacters = map[string][]string{"A": {"A"},
 func main() {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("Enter process name: ")
-	processName, _ := reader.ReadString('\n')
+	processName, _ := reader.ReadString("\n")
 	fmt.Print("Enter sequence file path: ")
-	sequencesFilePath, _ := reader.ReadString('\n')
+	sequencesFilePath, _ := reader.ReadString("\n")
 	var useCandidates bool
 	flag.BoolVar(&useCandidates, "candidates", false, "Use similarity candidates")
 	var fast bool
@@ -139,7 +139,7 @@ func readCsvFile(filePath string) []MutationSet {
 
 	gocsv.SetCSVReader(func(in io.Reader) gocsv.CSVReader {
 		r := csv.NewReader(in)
-		r.Comma = ';'
+		r.Comma = ";"
 		return r
 	})
 
@@ -161,7 +161,6 @@ func readFromTxt(filePath string) string {
 	file, _ := os.Open(filePath)
 	defer file.Close()
 	r := bufio.NewReader(file)
-	// Section 2
 	var buffer bytes.Buffer
 	for {
 		line, _, err := r.ReadLine()
@@ -574,7 +573,7 @@ func persistDistanceMatrixAsCsv(distanceMatrix map[int]map[int]float64, identifi
 		log.Fatalln("failed to open file", err)
 	}
 	w := csv.NewWriter(file)
-	w.Comma = ';'
+	w.Comma = ";"
 	defer w.Flush()
 	var data [][]string
 

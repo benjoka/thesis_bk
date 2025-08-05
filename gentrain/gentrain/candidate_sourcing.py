@@ -76,7 +76,6 @@ def and_or_lsh(encodings, hash_length, iterations):
                 candidates[a].add(b)
                 candidates[b].add(a)
 
-    # Convert sets to sorted lists
     candidates = {k: sorted(v) for k, v in sorted(candidates.items())}
     end = time.time()
     print(f"xor lsh execution time: {round((end - start), 2)}")
@@ -153,7 +152,7 @@ def get_hnsw_candidates(
     num_elements = len(encodings)
     data = np.float32(np.array(list(encodings.values())))
     ids = np.arange(len(data))
-    index = hnswlib.Index(space = 'l2', dim = len(data[0]))
+    index = hnswlib.Index(space = "l2", dim = len(data[0]))
     index.init_index(max_elements = num_elements, ef_construction = 200, M = 16)
     index.add_items(data, ids)
     index.set_ef(50)

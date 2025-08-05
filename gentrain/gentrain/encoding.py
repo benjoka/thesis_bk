@@ -22,7 +22,7 @@ for record in SeqIO.parse(reference_fasta_io, "fasta"):
 def get_missing_positions(mutations):
     missing_positions = []
     for missing in mutations["missing"]:
-        match = re.match(r'^(\d+)(?:-(\d+))?$', missing)
+        match = re.match(r"^(\d+)(?:-(\d+))?$", missing)
         start = int(match.group(1))
         end = int(match.group(2)) + 1 if match.group(2) else start + 1
         for position in range(start,end):  
@@ -46,21 +46,21 @@ def filter_mutations_by_missings(mutations, isolates_df, shifted_relevant_mutati
     
 def find_and_shift_relevant_mutation_positions(mutations, isolates_df, minified_aligned_sequences, shifted_reference_positions, exclude_indels, use_frequency_filtering):
     # filter substitions by relevance based on observed behaviours in MST constellations
-    substitution_counts = mutations['substitutions'].explode().value_counts().reset_index()
+    substitution_counts = mutations["substitutions"].explode().value_counts().reset_index()
     if use_frequency_filtering:
         substitution_counts = substitution_counts[(substitution_counts["count"]/len(isolates_df) < 0.2) & (substitution_counts["count"] > 1)]
-    relevant_substitution_positions = list(substitution_counts["substitutions"].apply(lambda x: int(re.match(r'^([A-Z])(\d+)([A-Z])$', x).group(2))))
+    relevant_substitution_positions = list(substitution_counts["substitutions"].apply(lambda x: int(re.match(r"^([A-Z])(\d+)([A-Z])$", x).group(2))))
     shifted_relevant_substitution_positions = [shifted_reference_positions[position] for position in relevant_substitution_positions]
     if exclude_indels:
         relevant_substitution_positions.sort()
         relevant_shifted_substitutions = minified_aligned_sequences[shifted_relevant_substitution_positions]
         return relevant_shifted_substitutions, shifted_reference_positions
         
-    insertion_counts = mutations['insertions'].explode().value_counts().reset_index()
-    insertion_positions = list(insertion_counts["insertions"].apply(lambda x: int(re.match(r'^(\d+):([A-Z]+)$', x).group(1))))
+    insertion_counts = mutations["insertions"].explode().value_counts().reset_index()
+    insertion_positions = list(insertion_counts["insertions"].apply(lambda x: int(re.match(r"^(\d+):([A-Z]+)$", x).group(1))))
     shifted_insertion_positions = [shifted_reference_positions[position] + 1 for position in insertion_positions if position != 0]
-    deletion_counts = mutations['deletions'].explode().value_counts().reset_index()
-    deletion_positions = list(deletion_counts["deletions"].apply(lambda x: int(re.match(r'^(\d+)(?:-(\d+))?$', x).group(1))))
+    deletion_counts = mutations["deletions"].explode().value_counts().reset_index()
+    deletion_positions = list(deletion_counts["deletions"].apply(lambda x: int(re.match(r"^(\d+)(?:-(\d+))?$", x).group(1))))
     shifted_deletion_positions = [shifted_reference_positions[position] for position in deletion_positions]
 
     relevant_mutation_positions = relevant_substitution_positions + insertion_positions + deletion_positions
@@ -71,7 +71,7 @@ def find_and_shift_relevant_mutation_positions(mutations, isolates_df, minified_
 def get_inserted_lengths(unique_insertion_list):
     inserted_lengths = {}
     for insertion in unique_insertion_list:
-        regex_result = re.findall(r'[0-9]+|:|[A-Za-z]+', insertion)
+        regex_result = re.findall(r"[0-9]+|:|[A-Za-z]+", insertion)
         position = int(regex_result[0])
         inserted_chars = regex_result[2]
         if position not in inserted_lengths or position not in inserted_lengths and len(inserted_lengths[position]) < len(inserted_chars):
@@ -103,18 +103,18 @@ def get_aligned_reference(unique_insertion_list, shifted_reference_positions):
 def get_aligned_mutation_dict(row, aligned_reference, shifted_reference_positions, exclude_indels=False):
     aligned_sequence = {i: 0 for i in range(1, len(aligned_reference)+1)}
     for substitution in row["substitutions"]:
-        match = re.match(r'^([A-Z])(\d+)([A-Z])$', substitution)
+        match = re.match(r"^([A-Z])(\d+)([A-Z])$", substitution)
         position = int(match.group(2))
         aligned_sequence[shifted_reference_positions[position]] = 1
     if exclude_indels:
         return aligned_sequence
     for insertion in row["insertions"]:
-        match = re.match(r'^(\d+):([A-Z]+)$', insertion)
+        match = re.match(r"^(\d+):([A-Z]+)$", insertion)
         position = int(match.group(1))
         if position != 0:
             aligned_sequence[shifted_reference_positions[position] + 1] = 1
     for deletion in row["deletions"]:
-        match = re.match(r'^(\d+)(?:-(\d+))?$', deletion)
+        match = re.match(r"^(\d+)(?:-(\d+))?$", deletion)
         deletion_start = int(match.group(1))
         aligned_sequence[shifted_reference_positions[deletion_start]] = 1
     return aligned_sequence
@@ -122,20 +122,20 @@ def get_aligned_mutation_dict(row, aligned_reference, shifted_reference_position
 def get_aligned_nucleotide_dict(row, aligned_reference, shifted_reference_positions, exclude_indels=False):
     aligned_sequence = aligned_reference.copy()
     for substitution in row["substitutions"]:
-        match = re.match(r'^([A-Z])(\d+)([A-Z])$', substitution)
+        match = re.match(r"^([A-Z])(\d+)([A-Z])$", substitution)
         position = int(match.group(2))
         character = match.group(3)
         aligned_sequence[shifted_reference_positions[position]] = character
     if exclude_indels:
         return aligned_sequence
     for insertion in row["insertions"]:
-        match = re.match(r'^(\d+):([A-Z]+)$', insertion)
+        match = re.match(r"^(\d+):([A-Z]+)$", insertion)
         position = int(match.group(1))
         characters = list(match.group(2))
         if position != 0:
             aligned_sequence[shifted_reference_positions[position] + 1] = characters[0]
     for deletion in row["deletions"]:
-        match = re.match(r'^(\d+)(?:-(\d+))?$', deletion)
+        match = re.match(r"^(\d+)(?:-(\d+))?$", deletion)
         deletion_start = int(match.group(1))
         aligned_sequence[shifted_reference_positions[deletion_start]] = "-"
     return aligned_sequence
