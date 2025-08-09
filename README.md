@@ -4,10 +4,10 @@ This repository contains the code base for my master's thesis, titled 'Selective
 
 | Directory | Description                                                                                                                                                                                                                                                         |
 | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| results   | Results of the thesis. Scores of _approximate candidate search_ might differ from the concrete scores listed in the thesis, as the procedure does not produce unambiguous results. The order of directories reflects the order results are discussed in the thesis. |
+| latex     | Latex files of the thesis.                                                                                                                                                                                                                                          |
 | gendisc   | Golang package that implements the GENTRAIN algorithm to calculate genetic distances. When executed with --fast the optimized algorithm is executed, as proposed in the thesis.                                                                                     |
 | gentrain  | Python module with the implementations of the approaches proposed in the thesis and several helper functions for evaluation purposes.                                                                                                                               |
-| latex     | Latex files of the thesis.                                                                                                                                                                                                                                          |
+| results   | Results of the thesis. Scores of _approximate candidate search_ might differ from the concrete scores listed in the thesis, as the procedure does not produce unambiguous results. The order of directories reflects the order results are discussed in the thesis. |
 
 ## Abstract
 
