@@ -1,0 +1,13 @@
+\begin{titlepage}
+    \begin{center}
+        \LARGE{\textbf{Masterarbeit}}\\
+        \Large{Medieninformatik}\\[12ex]
+        \LARGE{\titlename}\\[12ex]
+        \normalsize
+        Autor\\\authorname, \matnr \\
+        Erstgutachter \\\supervisor\\
+        Zweitgutachter \\\secsupervisor\\[12ex]
+        Düsseldorf, August \the\year{}
+    \end{center}
+\setcounter{page}{1}
+\end{titlepage}

@@ -1,0 +1,133 @@
+\documentclass[a4paper, oneside, 12pt, english, ngerman]{article}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage[acronym]{glossaries}
+\usepackage[toc,page]{appendix}
+\usepackage{titling}
+\usepackage[utf8]{inputenc}
+\usepackage{url}
+\usepackage{color,soul}
+\usepackage{csquotes}
+\usepackage{float}
+\usepackage{listings}
+\usepackage{subcaption}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{booktabs} 
+\usepackage{cellspace}
+\usepackage{amssymb}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{rotating}
+\usepackage{afterpage}
+\usepackage{svg}
+\usepackage[export]{adjustbox}
+\usepackage{fancyhdr}
+\usepackage[labelfont=bf]{caption}
+\captionsetup{labelsep=space}
+\usepackage{threeparttable}
+\usepackage{pdfpages}
+\usepackage[style=ieee,backend=biber,language=english]{biblatex}
+\usepackage[hidelinks]{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{matrix, positioning, shapes.geometric, arrows.meta}
+
+\setlength{\headheight}{30pt}
+\fancypagestyle{main}{
+  \fancyhf{}
+  \fancyhead[R]{\MakeUppercase{\leftmark}}
+  \fancyfoot[C]{\thepage}
+  \renewcommand{\headrulewidth}{0.4pt}
+  \pagenumbering{arabic}
+}
+
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyfoot[C]{\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+  \pagenumbering{Roman}
+}
+
+\fancypagestyle{blank}{
+  \fancyhf{}
+  \pagenumbering{arabic}
+  \renewcommand{\headrulewidth}{0pt}
+}
+
+\addbibresource{lists/biliography.bib}
+
+\graphicspath{ {./figures/title/}, {./figures/02_background/}, {./figures/04_results/}, {./figures/appendix/} }
+
+\setlength{\cellspacetoplimit}{8pt}
+\setlength{\cellspacebottomlimit}{8pt}
+
+\newcommand{\art}{Masterarbeit}
+\newcommand{\fachgebiet}{Medieninformatik}
+\newcommand{\titelname}{Selective Genetic Distance Computation for Visualizing Viral Outbreak Dynamics}
+\newcommand{\authorname}{Ben Kräling}
+\newcommand{\matnr}{902480}
+\newcommand{\supervisor}{Prof.\,Dr.\,Florian Huber}
+\newcommand{\secsupervisor}{Univ-Prof.\,Dr.\,Alexander Dilthey}
+\newcommand{\jahr}{2025}
+\newcommand{\ACRFULL}[1]{\MakeUppercase{\acrfull{#1}}}
+
+\geometry{margin=2.54cm, left=3.8cm}
+
+\makeglossaries
+\loadglsentries{./lists/glossary}
+    
+\begin{document}
+    \frenchspacing
+    \setstretch{1.5}
+    \input{./pages/title}
+    \pagestyle{blank}
+    \input{./pages/copyright}
+    \clearpage
+    \input{./pages/affidavit}
+    \clearpage
+    \input{./pages/acknowledgments}
+    \clearpage
+    \input{./pages/abstract}
+    \clearpage
+    \pagestyle{plain}
+    \tableofcontents
+    \cleardoublepage
+    \listoffigures
+    \cleardoublepage
+    \listoftables
+    \clearpage
+    \singlespacing
+    \printglossary[type=\acronymtype]
+    \newpage
+    \pagestyle{main}
+    \frenchspacing
+    \setstretch{1.5}
+    \setcounter{page}{1}
+    \input{./chapters/01_introduction}
+    \clearpage
+    \input{./chapters/02_background}
+    \clearpage
+    \input{./chapters/03_methodology}
+    \clearpage
+    \input{./chapters/04_results}
+    \clearpage
+    \input{./chapters/05_discussion}
+    \clearpage
+    \input{./chapters/06_conclusion}
+    \cleardoublepage
+    \singlespacing
+    \addcontentsline{toc}{section}{References}
+    \printbibliography
+    \clearpage
+    \appendix    
+    \renewcommand{\thetable}{\thesection.\arabic{table}}
+    \renewcommand{\thefigure}{\thesection.\arabic{figure}}
+    \setcounter{table}{0}
+    \setcounter{figure}{0}
+    \input{./chapters/appendix}    
+    \includepdf[pages=-]{pages/laufzettel.pdf}
+\end{document}
+

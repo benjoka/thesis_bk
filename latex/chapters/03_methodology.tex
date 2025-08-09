@@ -1,0 +1,323 @@
+\section{Methodology}
+\label{cha:methodology}
+This chapter describes the methodological concepts applied to answer the research question in a scientific way to ensure reproducibility. The data sources selected for this study are introduced and the data preparation process is outlined. Furthermore, the approaches carried out to minimize the computational runtime involved in generating \acrshortpl{mst} based on the GENTRAIN algorithm are delineated. Finally, the implementation and evaluation procedures are described. All corresponding source code is bundled into a Python module, which can be found in the accompanying GitHub repository \cite{Git1}.
+
+\subsection{Data Understanding and Preparation}
+In addition to innovative technical approaches to epidemiology, containing the SARS-CoV-2 pandemic has required countries to adjust their legal. For example, Germany introduced an ordinance for the surveillance of SARS-CoV-2, which included genome sequencing obligations \cite{Bmg1}. Sequencing laboratories were required to send sequenced genomes to the \acrfull{rki}, which is the leading biomedical research institution of the German federal government.
+Thus, the \acrshort{rki} has compiled a comprehensive SARS-CoV-2 genome sequence dataset ("SARS-CoV-2 Sequenzdaten aus Deutschland"), which is freely accessible and regularly updated. 
+
+Genome sequences are provided as a file containing unique ids along with the corresponding genome sequences. As expected for SARS-CoV-2 genomes, the sequences are around 30,000 nucleotides long. Nextclade was used to perform a sequence analysis on all sequences. As explained in Section \ref{sec:nextclade}, this also involves aligning all sequences with a reference genome. The Wuhan-Hu-1/2019 (MN908947) sequence \cite{Wu1} was used, which is the default SARS-CoV-2 reference in Nextclade. Lists of \acrshortpl{snv}, insertions and deletions, as well as ambiguous \acrshort{iupac} symbols, were obtained for each sequence. The number of mutations of each type and the resulting clade from the clade assignment stage (described in Section \ref{sec:nextclade}) were collected. The lineage of sequences is further distinguished by the inclusion of sublineages defined by the PANGO consortium \cite{Pan1}.
+
+\begin{table}[ht!]
+    \caption{Dataset fields and sources}
+    \centering
+    \small
+    \begin{tabularx}{\textwidth}{l|l|X}
+    Name & Source & Description \\
+    \hline
+    \hline
+    \ttfamily{igs\_id} & \acrshort{rki} & Unique identifier to map metadata with genome sequences. \\
+    \hline
+    \ttfamily{date\_of\_sampling} & \acrshort{rki} & Date on which the sample was collected by the primary diagnostic laboratory. \\
+    \hline
+    \ttfamily{sequencing\_platform} & \acrshort{rki} & Platform technology used for sequencing. The dataset consists of following options which were also discussed in Section \ref{sec:genome_sequencing_technologies}: ILLUMINA, 
+    OXFORD\_NANOPORE, ION\_TORRENT. \\
+    \hline
+    \ttfamily{variant} & \acrshort{rki} & Defined by the \acrshort{who}. The most prevalent variants for SARS-CoV-2 viruses are Alpha, Delta and Omicron. \\
+    \hline
+    \ttfamily{lab\_postal\_code} & \acrshort{rki} & Postal code of the primary diagnostic laboratory that collected the corresponding sample. \\
+    \hline
+    \ttfamily{\acrshortpl{snv}} & Nextstrain & List of detected \acrshortpl{snv} in a genome sequence, along with their corresponding reference position. \\
+    \hline
+    \ttfamily{insertions} & Nextstrain & List of the symbols inserted into a genome sequence, along with their corresponding reference positions. \\
+    \hline
+    \ttfamily{deletions} & Nextstrain & List of ranges of reference positions in a genome sequence at which a deletion was detected. \\
+    \hline
+    \ttfamily{missing} & Nextstrain & List of ranges of reference positions in a genome sequence at which an N was detected. \\
+    \hline
+    \ttfamily{non\_acgtns} & Nextstrain & List of symbols that are not one of the common nucleotides or N, along with their corresponding reference position. \\
+    \hline
+    \ttfamily{total\_\acrshortpl{snv}} & Nextstrain & Total number of detected \acrshortpl{snv} in a genome sequence. \\
+    \hline
+    \ttfamily{total\_insertions} & Nextstrain & Total number of detected insertions in a genome sequence. \\
+    \hline
+    \ttfamily{total\_deletions} & Nextstrain & Total number of detected deletions in a genome sequence. \\
+    \hline
+    \ttfamily{total\_missing} & Nextstrain & Total number of Ns in a genome sequence. \\
+    \hline
+    \ttfamily{total\_acgtns} & Nextstrain & Total number of symbols that are not one of the common nucleotides or N. \\
+    \hline
+    \ttfamily{clade} & Nextstrain & Lineage association identified on the phylogenetic tree during Nextclade analysis. \\
+    \hline
+    \ttfamily{sublineage} & Nextstrain & Fine-grained lineage association defined by the PANGO consortium \cite{Pan1}. \\
+    \hline
+    \ttfamily{lab\_city} & \acrshort{godi} & City name of the primary diagnostic laboratory that collected the corresponding sample. \\
+    \hline
+    \ttfamily{lab\_federal\_state} & \acrshort{godi} & Federal state name of the primary diagnostic laboratory that collected the corresponding sample. \\
+    \end{tabularx}
+    \label{table:rki_metadata}
+\end{table}
+
+Finally, the original sequences from the dataset were dropped as further processing was deemed unnecessary. To evaluate the runtime of the Nextclade mutation calling process, the determination was carried out independently for different numbers of sequences. The resulting runtime in seconds was averaged across multiple executions of the process.
+
+In addition to the genome sequences themselves, the \acrshort{rki} dataset includes metadata which provides further context for each sequence. For this work, the postal code of the primary diagnostic laboratories that collected the samples, the dates of sampling, the sequencing technologies used, and the virus variants defined by the \acrshort{who} were used.
+The postal codes of the primary diagnostic laboratories were mapped with the names of cities and federal states in Germany. Therefore, the location dataset for Germany from the \acrfull{godi} \cite{Glo1} was used. Table \ref{table:rki_metadata} provides a list of the combined dataset and a description of each field.
+
+After constructing the dataset, it was analyzed in order to understand the data in terms of its characteristics and limitations. Therefore, the seasonal and geographic distribution of the sequences was observed. In addition, genetic aspects such as variant and clade distribution, as well as mutation dynamics, were examined.
+
+\subsubsection{Seasonal and Geographic Data Aggregation}
+\label{sec:seasonal_and_geographical_data_aggregation}
+As the dataset provides an extensive picture of the SARS-CoV-2 pandemic, it was not feasible to incorporate all available data. For a virus that exhibits dynamic mutation behavior, such as SARS-CoV-2, the results obtained can vary significantly depending on the data observed. Consequently, data aggregates were generated according to the \acrshort{who} definition of outbreaks by seasonal periods and geographic areas. Seasonal periods were delineated by intervals of a week, a month, and a year, while the geographic span was represented by the municipal, federal state, and the country.
+
+In order to ensure that the aggregates adequately represent diverse outbreak scenarios, the mutation diversity and infection density were elaborated. Mutation diversity was observed by comparing the number of present clades per aggregate. In contrast, several definitions were introduced to analyze infection density within the aggregates.
+For a genetic distance matrix $D \in \mathbb{R}^{N \times N}$ with $D = D^T$ and $N$ being the amount of sequences considered, the genetic distance between sequences $i$ and $j $ is defined as $D_{ij}$ and the total distance amount $|D|$ corresponds to $\binom{N}{2}$. According to the replication behavior of the SARS-CoV-2 virus, as explained in Section \ref{sec:viral_mutation_dynamics_and_isolate_relatedness}, an infection is assumed between the sequences $i$ and $j$ if $D_{ij} < 2$ for $i \neq j$. This does not imply that an infection and therefore a direct transmission must have occurred between the disease cases associated with these sequences. It is more an indicator that a direct transmission could have occurred and that the investigation of these cases is relevant to understand the infection chains of the observed scenario. Nevertheless, to ensure consistent terminology throughout this work, these genetic distances will be referred to as infections in the context of SARS-CoV-2. The amount of infections is expressed as:
+$$I = \sum_{1 \le i < j \le n} \mathbf{1}_{\{D_{ij} < 2\}}$$
+
+To gain an understanding of how these infections are distributed through complete distance matrices, the infection rate is defined as the proportion of $I$ in the total distance amount $D$. To investigate these parameters, it was necessary to calculate complete genetic distance matrices. As this calculation scales quadratically with the number of sequences considered, the aggregates were downsampled to a size of 1,250 sequences. During the sampling process, the geographic and seasonal sequence distribution was preserved to maintain aggregate characteristics. This preservation included the representation of dates (or months for aggregates comprising long seasonal periods), and cities (for the federal state level) or federal states (for the country level). The genetic distance matrices were then calculated using the GENTRAIN algorithm described in Section \ref{sec:calculation_of_genetic_distances}.
+
+\subsubsection{Mutation Encoding}
+\label{sec:mutation_encoding}
+In order to efficiently approximate genetic distances, it was necessary first to create sparse numeric representations of the mutation information. As previously described, the dataset comprises mutation information for sequences, expressed in the form of Nextclade mutation strings (see Section \ref{sec:nextclade}). The simplest algorithmic approach to processing these data would be to treat each mutation string as a word and build a vocabulary that can be represented numerically using one-hot encodings. These represent inputs as binary vectors, where each position in a vector indicates whether a particular word from the vocabulary is present (1) or absent (0) for each input in the dataset. However, this would make the encoding structure very inflexible, which would complicate any subsequent filtering process based on the reference position and mutation type. Consequently, a position-based encoding approach was implemented.
+
+When \acrshortpl{snv} and deletions are taken into account alone, the length of this encoding could be represented by the length of the reference genome. However, in order to ensure forward-looking compatibility with other viruses, it was essential not only to respect \acrshortpl{snv} and deletions but also insertions. Including insertions means that the shared encoding length must be extended, so that resulting encoding vectors are longer than the reference genome sequence. Nextclade describes insertions by indicating at which reference position the inserted characters are placed after. To keep the sequence vectors aligned, all reference positions subsequent to the insertion reference position need to be projected to a higher encoding position. Since the GENTRAIN distance calculation increases the distance for consecutive gaps in one sequence only by 1 (see \ref{sec:calculation_of_genetic_distances}), this projection value is limited to 1 per reference position. More strict algorithms may be approximated using greater projection values.
+
+During the mutation encoding procedure, the projected reference positions are recorded in a mapping object. The keys of this object represent the original reference positions and the values represent the resulting encoding positions.
+Next, a vector of the encoding length is initialized for each sequence considered. These vectors are then populated exclusively with zeros, which initially represent totally unmutated genomes, serving as the basis for the further encoding process.
+In the following procedure, for each reference position that is processed, it undergoes a conversion into its corresponding encoding position from the mapping object. For each \acrshort{snv}, insertion and deletion per sequence, zeros at the encoding position are then replaced by ones, thereby representing a mutated position. In the event of an insertion or a deletion that is more than one position, only the starting positions of the affected area will be marked as mutated. This is done to ensure that the handling of the gaps in the GENTRAIN distance calculation is adequately addressed. For insertions, this starting position is determined by incrementing the defined reference position from the Nextclade mutation string by one to find the actual position of the nucleotide insertion.
+
+The resulting vectors provide information on the positions in which the sequences underwent mutation (1) and those in which they did not (0). Visualizations of outbreak dynamics, and therefore infection chains, focus exclusively on differences between genomes. Therefore, all encoding positions that do not show mutations for any sequence vector can be safely omitted from the encoding. Consequently, the encoding is reduced to the maximum amount of information necessary to obtain genetic distances, under the assumption that the sequences would be perfectly sequenced. However, this assumption can be invalidated by the recent progress of sequencing technology, as discussed in Section \ref{sec:genome_sequencing_technologies}.
+
+Given that GENTRAIN avoids overestimating genetic distances, which could occur due to the possible ambiguity of sequence symbols, the way ambiguous symbols are handled must also be reflected. The GENTRAIN distance calculation handles ambiguous symbols from the \acrshort{iupac} nucleotide nomenclature differently. In the case of the presence of a missing symbol, the distance will not increase at all. This helps prevent the accounting of false positive detections of nucleotide differences. Other ambiguous symbols are mapped against their \acrshort{iupac} nucleotide assignments before deciding on an increase in genetic distance. This behavior cannot be addressed in a straightforward manner using vector encodings. To solve this issue, positions are filtered from the encoding that account for a high number of missing symbols throughout the sequences under consideration. 
+Therefore, all missing positions are collected by sequence and then concatenated into a single list. From this list, the number of occurrences of each missing position is counted. Missing positions that occur more frequently than a defined threshold were marked for exclusion from the encoding. In this work, this threshold is set to 5\% of the total number of sequences considered to avoid excluding an excessive number of positions. Since the encoding is designed to approximate the GENTRAIN distance calculation, it was preferable to underestimate the genetic distances rather than overestimate them. Significant overestimation would be the result of ignoring missing positions or choosing a threshold that is too low.
+The filtering procedure for missing high-frequency positions was designated as \acrfull{nff}, which has the positive side effect of reducing the size of the encoding. 
+
+A second applied filter was labeled \acrfull{snvff}. Its purpose was to further shorten the encodings, while retaining the positions of the characteristic \acrshortpl{snv} of the resulting \acrshort{mst} visualizations. Therefore, \acrshortpl{mst} and their corresponding Louvain communities of various data aggregates were analyzed in terms of \acrshortpl{snv} that occur. For each detected community of an \acrshort{mst} the \acrshortpl{snv} from all contained sequences were collected, while only a unique entry per \acrshort{snv} was maintained. The characteristic \acrshortpl{snv} that appear exclusively within their respective communities were then identified. For each characteristic \acrshort{snv} the number of occurrences in the corresponding community sequences was observed. Based on the minimum and maximum observed occurrences, the \acrshortpl{snv} that occurred significantly more frequently or less frequently were assumed to be uncharacteristic and not considered further. While \acrshort{snvff} significantly minimizes the length of the encoding, it also reduces the information gain. Therefore, different encoding approaches (without filtering, with \acrshort{nff}, with \acrshort{nff} \& \acrshort{snvff}) were evaluated.
+
+\subsection{Implementation}
+\label{sec:implementation}
+The GENTRAIN distance calculation is susceptible to two aspects of time complexity. One concern is the calculation of the genetic distance itself, which is designed to yield highly precise results in order to accurately reflect infection chains. The second issue concerns the nature of quadratic scaling in distance matrices as the number of sequences increases. In the present work, the first issue is addressed by reducing the observed genomic information of the algorithm to the minimum necessary. To reduce the factor of quadratic scaling, the most relevant calculation candidates to generate adequate \acrshortpl{mst} are identified based on approximate genetic distance matrices. Finally, this work addresses large-scale scenarios in which the calculation of approximate genetic distance matrices through the distance matrix approximation reaches its limit. For these cases, an approach based on approximate nearest neighbor search is proposed to identify relevant candidates and calculate sparse distance matrices.
+
+\subsubsection{Modification of the GENTRAIN Algorithm}
+\label{sec:optimization_of_the_gentrain_algorithm}
+The algorithm introduced in Section \ref{sec:calculation_of_genetic_distances} calculates the genetic distance $d(s_1,s_2)$ for the genome sequences $s_1$ and $s_2$.
+Since the runtime of calculations is crucial especially for large-scale scenarios, this work first aims to speed up the algorithm itself. Currently, the algorithm must first iterate through all positions in the reference genome to reconstruct and align two genome sequences. Subsequently, a second iteration is necessary to potentially increase the genetic distance per reference position. However, iterating the entire genome a second time instead of just the mutated positions might have a tremendous effect on algorithmic runtime, especially when considering large-scale sequence datasets. The question of whether the advantages of iterating all reference positions twice justify the effects on runtime is questionable. This is due to the fact that the presence of the same symbols in both observed sequences, as well as the presence of a missing symbol in one sequence, does not result in an increase in genetic distance. However, the GENTRAIN algorithm requires a position-wise observation to increase distance only if the necessary number of proper symbols was seen. Furthermore, indels should only increase genetic distance by one. To achieve this, unmutated positions between two subsequent indels must be taken into account.
+
+Two measures were taken to optimize the algorithm with regard to the described issues. First, the algorithm was adjusted to only consider positions in the reference genome that contain a mutation in one of the sequences during sequence reconstruction. Furthermore, reference positions that contain missing symbols in either sequence are excluded from the reconstructed sequences, as these are bypassed in the subsequent stage. Consequently, since the second iteration does not iterate the entirety of the reference genome, the proper symbols that were observed cannot be evaluated. In order to still ensure the observation of exclusively qualitative genome parts, mutated positions are only considered if the position falls within the range between the starting and ending positions of the alignment, as specified by Nextclade. Figure \ref{fig:algorithm_comparison} demonstrates the adjustments to the original GENTRAIN algorithm. Both algorithms perform the first iteration to reconstruct and align sequences over a comparable range of reference positions. However, the second iteration procedure to iteratively determine the genetic distance is minimized for the modified algorithm.
+
+\begin{figure}[ht]
+\centering    
+\tikzset{
+    startstop/.style={rectangle, rounded corners, minimum width=2cm, minimum height=0.8cm, text width=2cm, text centered, draw=black, fill=white},
+    process/.style={rectangle, minimum width=3cm, text width=6.5cm, minimum height=1cm, text centered, draw=black, fill=white},
+    arrow/.style={thick,->,>=stealth},
+    io/.style={trapezium, trapezium left angle=70, trapezium right angle=110, text width=6cm, minimum height=1cm, text centered, draw=black, fill=white}
+}
+  \begin{subfigure}[b]{0.49\textwidth}
+    \begin{tikzpicture}[every node/.style={font=\footnotesize}, node distance=2.1cm]
+        
+        \node (start) [startstop] {Start};
+        \node (mutations) [io, below=0.5cm of start] {Nextclade mutation calling results for two genomes};
+        \node (loop1) [process, below of=mutations] {\underline{Pairwise sequence reconstruction}\\\vspace{0.3em}
+        Iterates reference genome\\
+        \vspace{0.3em}
+          \hrule
+        \vspace{0.3em}
+        Considers all symbols during sequence reconstruction};
+        \node (sequences) [io, below of=loop1] {Sequences of unmutated and mutated reference positions};
+        \node (loop2) [process, below of=sequences] {\underline{Pairwise distance determination}\\\vspace{0.3em}
+        Iterates sequences of unmutated and mutated reference positions\\
+        \vspace{0.3em}
+          \hrule
+        \vspace{0.3em}
+        Assesses proper symbols seen};
+        \node (distance) [io, below of=loop2] {Genetic distance between the two genomes};
+        \node (end) [startstop, below=0.5cm of distance] {End};
+        
+        \draw [arrow] (start) -- (mutations);
+        \draw [arrow] (mutations) -- (loop1);
+        \draw [arrow] (loop1) -- (sequences);
+        \draw [arrow] (sequences) -- (loop2);
+        \draw [arrow] (loop2) -- (distance);
+        \draw [arrow] (distance) -- (end);
+        
+        \end{tikzpicture}
+    \caption*{(a) GENTRAIN algorithm}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.49\textwidth}
+       \begin{tikzpicture}[every node/.style={font=\footnotesize}, node distance=2.1cm]
+        
+        \node (start) [startstop] {Start};
+        \node (mutations) [io, below=0.5cm of start] {Nextclade mutation calling results for two genomes};
+        \node (loop1) [process, below of = mutations] {\underline{Pairwise sequence reconstruction}\\\vspace{0.3em}
+        Iterates reference genome \textbf{within alignment ranges}\\
+        \vspace{0.3em}
+          \hrule
+        \vspace{0.3em}
+        \textbf{Ignores equal and missing symbols} during sequence reconstruction};
+        \node (sequences) [io, below of=loop1] {Sequences of \textbf{deviating mutations except missing symbols}};
+        \node (loop2) [process, below of=sequences] {\underline{Pairwise distance determination}\\\vspace{0.3em}
+        Iterates sequences of \textbf{deviating mutations except missing symbols}\\
+        \vspace{0.3em}
+          \hrule
+        \vspace{0.3em}
+        \textbf{Ignores} proper symbols seen};
+        \node (distance) [io, below of=loop2] {Genetic distance between the two genomes};
+        \node (end) [startstop, below=0.5cm of distance] {End};
+        
+        \draw [arrow] (start) -- (mutations);
+        \draw [arrow] (mutations) -- (loop1);
+        \draw [arrow] (loop1) -- (sequences);
+        \draw [arrow] (sequences) -- (loop2);
+        \draw [arrow] (loop2) -- (distance);
+        \draw [arrow] (distance) -- (end);
+        
+        \end{tikzpicture}
+    \caption*{(b) Modified algorithm}
+  \end{subfigure}
+\caption[Comparison of the GENTRAIN algorithm and the modified version]{Comparison of the GENTRAIN algorithm and the modified version. The flowcharts focus on the modifications to the GENTRAIN algorithm, which are in bold. Trapezoids represent inputs and outputs, and rectangles represent processes.}
+\label{fig:algorithm_comparison}
+\end{figure}
+
+Both implementations show a time complexity of $O(n)$ with two iterations being performed. However, in the GENTRAIN implementation, for the second iteration $n$ refers to at least the length of the reference genome, while in the modified algorithm, $n$ refers to the sum of unique mutation positions in both sequences. Although this does not dramatically affect the actual runtime for smaller sequence datasets, it should result in an immense decrease in runtime on a larger scale. In the worst-case scenario, $n$ is equal for both implementations if at least one mutation is found at each reference position. Since this is not a realistic scenario, one could assume that the algorithmic changes truly optimize the algorithm in terms of runtime.
+
+\subsubsection{Complete Candidate Search}
+\label{sec:accurate_candidate_search}
+Approximate genetic distance matrices were used to identify the most relevant candidates for an exact calculation of genetic distance. The objective was to calculate sparse matrices of exact genetic distances to reduce the total algorithmic runtime. Sparse matrices are also beneficial for the \acrshort{mst} generation and memory purposes. This procedure was designated as \acrfull{ccs}, as the candidates are identified based on complete matrices resulting from the genetic distance approximation. 
+
+To approximate the genetic distance ${d}(s_1,s_2)$ for the sequences $s_1$ and $s_2$, the sum of a position-wise exclusive OR (XOR) is calculated between the mutation encoding vectors $m_1$ and $m_2$. Essentially, the Hamming distance is examined, which corresponds to the number of different values in both encoding vectors.
+
+$$\tilde{d}(s_1, s_2) = \tilde{d}(m_1, m_2) = \sum_{i=1}^{L_{encoding}} m_{1_i} \oplus m_{2_i}$$
+
+A single genetic distance approximation has a time complexity of $O(n)$ with $n$ referring to the length of the encoding. However, when calculating an approximate genetic distance matrix, a time complexity of $O(n^2)$ is present. Although this approach implies quadratic scaling, it is anticipated that the reduced runtime of a single genetic distance determination will be particularly advantageous for large datasets. Given that the encoding length depends on the number of mutations present in the sequences, it must be assumed that both parameters that affect the runtime increase with the number of sequences. Consequently, the runtime for data aggregates with varying sequence counts was evaluated. Assuming there are no ambiguous symbols, this approximation would consistently underestimate the GENTRAIN genetic distance results. However, overestimation cannot be definitively ruled out, since missing symbols are only observed globally through position filtering and not at the pairwise level.
+
+The approximate genetic distance matrices were then used for relevant candidate search. Different search strategies were developed based on the question of whether finding only the lowest genetic distances (depth search) or finding a broad representation of sequences (breadth search) is more important to generate adequate \acrshortpl{mst} based on sparse genetic distance matrices.
+Both approaches first calculate the approximate genetic distances between all sequences considered, which are then sorted in ascending order. A dictionary is created in which the values represent the sorted approximate distances and the keys represent tuples of the two corresponding sequence identifiers. Furthermore, a limit for the remaining number of calculations $n_{calc}$ is expressed as $r_{calc}*|D|$, which is driven by the forced remaining calculation rate $r_{calc}$. The two methods then proceed differently:
+
+\begin{description}
+    \item[Depth search] The keys of the dictionary are extracted as a list, which is then cut to a length of $n_{calc}$. This retains the tuples of sequence pairs with the lowest approximate distances. Candidate pairs are extracted directly from this list to identify the sequences that are most similar on the basis of approximate genetic distance.
+    \item[Breadth search] The list of sequence pairs sorted by approximate genetic distances is iterated, and candidate pairs are extracted subsequently. Therefore, a candidate entry is added for both sequences if the number of candidates for $s_1$ did not reach the limit of maximum candidates per sequence. This limit is derived from $n_{calc}$ divided by the number of sequences considered.
+\end{description}
+
+Sparse genetic distance matrices and corresponding \acrshortpl{mst} for several seasonal and geographic aggregates were generated for both approaches. The aggregates considered were determined based on the observations resulting from the analysis introduced in Section \ref{sec:seasonal_and_geographical_data_aggregation}. Furthermore, data aggregates of different sample sizes were considered because sequence density could affect visualization of outbreak scenarios. The determined sample sizes were 1,250, 2,500, and 5,000, which appears plausible in terms of sequence availability during a pandemic. Complete distance matrices using the modified algorithm were computable in a reasonable amount of time on regular computers for these dimensions, enabling the evaluation against complete reference matrices. The evaluation of results was performed taking the calculation rates of 0.05, 0.1, 0.15 and 0.2 into account. These rates were chosen to significantly reduce the necessary calculations and determine the minimum number of calculations recommended to achieve adequate visualizations for different seasonal and geographic scenarios. 
+
+\subsubsection{Approximate Candidate Search}
+\label{sec:approximate_candidate_search}
+
+The \acrshort{ccs} approach relies on computing an approximate but complete genetic distance matrix. Therefore, it does not address the general issue of quadratic scaling, which reveals the limiting factor of the number of sequences that can be considered.
+Thus, an \acrfull{acs} approach based on \acrshort{anns} was also evaluated. As the present work focuses on finding adequate methods to efficiently generate adequate \acrshort{mst} visualizations, the \acrshort{acs} approach was implemented based on the findings of Nimrah Mustafa's work on \acrshort{lsh} for big data analytics (see Section \ref{cha:related_work}). The following definitions adhere strictly to Mustafa's work, applying it to the circumstances of this work. The proposed method was labeled AND/OR-\acrshort{lsh}, which associates sequences with so-called \acrshort{lsh} buckets. All sequence pairs associated with the same bucket are treated as relevant for the calculation of genetic distances. Therefore, a hash family $\mathcal{H}$ consisting of $n$ hash functions is defined as $\mathcal{H} = \{h_i: 1 \leq i \leq n\}$ and a hash function $h$ is defined as $h: \{0,1\}^n \rightarrow \{0,1\}$. For a mutation encoding $m = (m_1,m_2,...,m_n)$, the hash function $h_i$ would return the value of the $i$th position in $m$.
+To minimize false positives, an AND construction of a set of $r$ hash functions is employed. This yields a derived hash function:
+$$h_k'(m_1) = h_k'(m_2) \Leftrightarrow h_{k1}(m_1) = h_{k1}(m_2) \land h_{k2}(m_1) = h_{k2}(m_2) \land ... \land h_{kr}(m_1) = h_{kr}(m_2) $$
+According to this definition, two sequences are associated with the same \acrshort{lsh} bucket only if $h_k' = 1$, which means that all the hash functions for both sequences return the same value. Mustafa also suggests an OR construction of $b$ derived hash functions to minimize false negatives.
+$$h''(m_1) = h''(m_2) \Leftrightarrow h_{1}'(m_1) = h_{1}'(m_2) \lor h_{2}'(m_1) = h_{2}'(m_2) \lor ... \lor h_{b}'(m_1) = h_{b}'(m_2) $$
+Sequences are now associated with the same \acrshort{lsh} bucket, if at least one first grade hash function equals $1$, which increases the probability that the sequences will be identified as relevant candidates. The full derivation of this approach can be found in Nimrah Mustafa's original work.
+
+\begin{algorithm}[ht!]
+\begin{algorithmic}
+\small
+\Function{andOrLsh}{$M$, $L_{hash}$, $n_{iterations}$}
+    \State candidates $\gets$ \{index: [] for index in $M$\}
+    \State candidate\_tuples $\gets$ empty set
+    \For{iteration = 1 to $n_{iterations}$}
+        \State lsh\_buckets $\gets$ empty dict
+        \State hash\_function $\gets$ List with $L_{hash}$ randomly sampled positions from encoding
+        \ForAll{index, encoding in $M$}
+            \State hash $\gets$ [encoding[i] for i in hash\_function]
+            \State Append index to lsh\_buckets[hash]
+        \EndFor
+        \ForAll{indices in lsh\_buckets.values()}
+            \ForAll{(index\_1, index\_2) in combinations(indices)}
+                \State Append index\_2 to candidates[index\_1]
+                \State Append index\_1 to candidates[index\_2]
+            \EndFor
+        \EndFor
+    \EndFor
+    \State Sort candidates by keys
+    \State \Return candidates
+\EndFunction
+\end{algorithmic}
+\caption{AND/OR-LSH}
+\label{alg:lsh}
+\end{algorithm}
+
+
+The method was implemented in Python using standard packages, as shown in Algorithm \ref{alg:lsh}, and returns all relevant sequence pairs for which genetic distances will be calculated.
+The input parameters are the mutation encodings $M$ for a set of sequences, the forced length of \acrshort{lsh} hashes $L_{hash}$, and the number of \acrshort{lsh} iterations $n_{iterations}$, derived from the number of OR constructions applied.
+
+As mentioned above, the number of applied OR constructions, and consequently the number of \acrshort{lsh} iterations, reduces the number of false negatives. The higher the number of \acrshort{lsh} iterations, the more candidate pairs that will be found. This might also lead to an increase in false positives, which is why this parameter should be handled carefully. Furthermore, an increase in the number of \acrshort{lsh} iterations results in a corresponding increase in the runtime of the algorithm. The hash length represents the implementation of AND constructions and influences the number of false positives and false negatives. Shorter hashes lead to more sensitive hashing and a higher probability of collision. Thus, a broader selection of distances is represented throughout all sequences considered. Conversely, longer hash lengths are less sensitive, focusing exclusively on the most similar candidate pairs. This is analogous to the motivations behind the depth and breadth search strategies introduced in Section \ref{sec:accurate_candidate_search}.
+The time complexity for AND/OR-\acrshort{lsh} is expected to be subquadratic when $L_{hash}$ is chosen adequately. However, in the worst case, too short hash lengths could lead to a quadratic time complexity, as too many sequences would collide.
+
+\acrshortpl{mst} resulting from different hash lengths and \acrshort{lsh} iterations were generated and evaluated. The results were compared to \acrshort{ccs} and an \acrshort{hnsw} implementation, which provides a reference to an established \acrshort{anns} solution. The \acrshort{hnsw} candidates were distinguished using the \textit{hnswlib} Python package \cite{Hns1}, which is part of the cross-platform similarity search library \textit{nmslib} \cite{Nms1}. Since the runtime of these algorithms depends heavily on their implementation, the \acrshort{acs} results of this work were only compared with \acrshort{hnsw} results in terms of accuracy.
+
+\subsection{Evaluation}
+\label{sec:evaluation}
+The research question addresses how to minimize the computational effort required to visualize the dynamics of large-scale viral outbreaks while preserving interpretability for outbreak analysis. Two fundamental concepts must be operationalized: the reduction of computational effort and the preservation of interpretability for outbreak analysis. The reduction in computational effort involved in visualizing the dynamics of large-scale outbreaks can be expressed in terms of the runtime necessary for the calculation of genetic distance matrices and the generation of \acrshortpl{mst}. The effort required for the latter procedure is significantly influenced by the edge density, which varies when generating \acrshortpl{mst} based on complete distance matrices compared to a selective approach. As preparatory procedures, such as the generation of mutation encodings, incur computational overhead, these were also taken into account in the evaluation of the runtimes achieved in this work.
+
+Regarding the interpretability of the visualizations for outbreak analysis, the characteristics that define disease outbreaks, which were introduced in Section \ref{sec:viral_outbreak_analysis}, were observed. These are the appearance of multiple infections resulting from a shared infectious host and seasonal and geographic outbreak context that exceeds common expectations. The first characteristic can be analyzed by tracing infection chains. In Section \ref{sec:seasonal_and_geographical_data_aggregation}, infections were theoretically defined in the context of the epidemiological behavior of SARS-CoV-2. To evaluate the remaining presence of infection chains, the resulting distance matrices were analyzed in terms of accuracy with a focus on infectious distances. However, the overall preservation of genetic distance was also observed, as low non infectious distances may be indicators of viral transmission chains. Approaches that modify genetic distances include the modification of the GENTRAIN algorithm and the approximation of genetic distances. For both procedures, a comparison was carried out between a reference matrix, $D$\textsubscript{ref}, and a produced matrix, $D$\textsubscript{prod}, where $D$\textsubscript{ref}, $D_{\text{prod}} \in \mathbb{R}^{N \times N}$ with $N$ denoting the amount of sequences considered. Between these matrices the root mean squared error ($\text{RMSE}$) was calculated to measure the element-wise accuracy, allowing for an interpretable comparison in terms of genetic distances. To measure whether the approaches overestimate or underestimate the reference matrix on average, the sign of the mean error was multiplied by $\text{RMSE}$ to calculate the signed RMSE. This provides an interpretable error value between $D$\textsubscript{ref} and $D$\textsubscript{prod} and also indicates the direction of this error. To gain a comprehensive understanding of the preserved infection chains, the metric $\text{sRMSE}_{inf}$ was calculated similarly to $\text{sRMSE}$, but with a focus only on infections within $D$\textsubscript{prod} and $D$\textsubscript{ref}. 
+$$\text{sRMSE} = \operatorname{sign}\left( \frac{1}{N^2} \sum_{i=1}^{N} \sum_{j=1}^{N} (D_{\text{prod}_{ij}} - D_{\text{ref}_{ij}}) \right) \cdot \sqrt{ \frac{1}{N^2} \sum_{i=1}^{N} \sum_{j=1}^{N} (D_{\text{prod}_{ij}} - D_{\text{ref}_{ij}})^2 }$$
+$$\text{sRMSE}_{inf} = \operatorname{sign}\left( \frac{1}{N^2} \sum_{i=1}^{N} \sum_{j=1}^{N} (I_{\text{prod}_{ij}} - I_{\text{ref}_{ij}}) \right) \cdot \sqrt{ \frac{1}{N^2} \sum_{i=1}^{N} \sum_{j=1}^{N} (I_{\text{prod}_{ij}} - I_{\text{ref}_{ij}})^2 }$$
+
+The error investigation was substantiated using a rank-based correlation measure to compare the relational aspects of $D$\textsubscript{ref} and $D$\textsubscript{prod}. Therefore, Kendall $\tau_b$ scores were calculated using the \textit{scikit-learn} package \cite{Sci1} for Python. To further assess the preservation of infection chains within the resulting distance matrices, recall was observed for infectious distances. To provide context for infection recall, the corresponding precision was also taken into account. Infections from $D$\textsubscript{ref} that are also represented in $D$\textsubscript{prod} are labeled as true positive infections ($TP_{inf} = |I_{ref} \cap I_{prod}|$). Missed infections are labeled false negative infections ($FN_{inf} = |I_{ref} \setminus I_{prod}|$) and non infectious distances that were identified as infections by mistake are labeled false positive infections ($FP_{inf} = |I_{prod} \setminus I_{ref}|$).
+The formulas for infection recall and infection precision are then expressed as:
+$$R_{inf} = \frac{TP_{inf}}{TP_{inf}+FN_{inf}} \quad P_{inf} = \frac{TP_{inf}}{TP_{inf}+FP_{inf}}$$
+
+Infection recall must also be evaluated for distance matrices obtained from \acrshort{ccs} and \acrshort{acs}. However, the methods calculate the exact genetic distances for the identified sequence pairs, eliminating the need to analyze rank-based correlation, error measures, and the infection precision score.
+
+Concerning the identification of seasonal and geographic outbreak contexts, the preservation of the \acrshort{mst} structure was evaluated. First, it was necessary to understand the interpretational potential of the original GENTRAIN visualizations. Therefore, Louvain communities were identified for the original \acrshort{mst}, and the significance of partitioning was evaluated. This was a subjective assessment of the representation of outbreak-related attributes through the detected communities and visible node clusters. These attributes are those related to the spread of infections, including lineage, sampling dates, and collection cities. Regarding the lineage of sequences, the clade associations detected during the Nextclade mutation call were used for aggregates comprising shorter seasonal periods. Since aggregates comprising shorter seasonal periods were expected to exhibit a lower number of deviating clades, the sublineage was analyzed instead to obtain informative observations. To understand how the original \acrshortpl{mst} reflect seasonal and geographic characteristics, the distributions of the sampling dates and the collection cities were investigated. 
+
+These findings served as the basis for evaluating the interpretability of the visualizations produced by the approaches carried out. For each approach carried out, the produced \acrshort{mst}, $T$\textsubscript{prod}, is compared to a reference \acrshort{mst}, $T$\textsubscript{ref}. The specific labels of the produced and reference \acrshortpl{mst} per approach can be seen in Figure \ref{fig:products_and_references}. To compare the distributions of the sequence nodes within $T$\textsubscript{ref} and $T$\textsubscript{prod}, the Louvain communities were determined for both \acrshortpl{mst}.
+To evaluate the similarity between the two partitions of the \acrshortpl{mst}, the \acrfull{ari} was calculated. This measure is based on the rand index, which measures similarity by counting how many coherent pairs are clustered the same in both partitions \cite{Sun1}. Furthermore, \acrshort{ari} takes into account the chance of random assignment. The range of possible \acrshort{ari}  values ranges from $-1$ to $1$, where a value of 0 indicates a clustering by chance. Consequently, negative values demonstrate even less agreement than random partitioning, while positive values imply enhanced agreement. In this work, the \acrshort{ari} corresponding to the Louvain community distribution within two separate \acrshortpl{mst} is designated as $\text{ARI}_{com}$, which was calculated using the \textit{scikit-learn} package \cite{Sci1} for Python.
+
+Given that different \acrshortpl{mst} can reflect comparable distributions of outbreak-related attributes, even though the structure of the exhibited communities differs, additional metrics were used to assess the preservation of the interpretability of \acrshortpl{mst} from an epidemiological perspective. First, the detected communities were analyzed on the basis of the purity of the lineage associations contained. 
+The clade is used as lineage information for longer seasonal periods, while the sublineage is used for shorter ones. With $C_{\text{MST}}$ being the set of communities in an \acrshort{mst}, $N_{\ell_{\max},c}$ is the number of sequences associated with the most frequently represented lineage of the community $c$ and $N_c$ the total number of sequences of the community $c$. 
+The lineage purity $p_{\ell,{\text{MST}}}$ for an entire \acrshort{mst} is expressed as $\frac{\sum_{c\in C}N_{\ell_{\max},c}}{\sum_{c\in C}N_c}$. As the assessment of $p_{\ell_{\text{MST}}}$ scores also depends on the lineage purity of the corresponding $T$\textsubscript{ref}, differences in $p_{\ell_{\text{MST}}}$ between $T$\textsubscript{prod} and $T$\textsubscript{ref} were observed. Finally, the mean edge weights, denoted as $\bar w$, of the produced \acrshortpl{mst} were exhibited and compared to their reference values.
+
+In addition, the resulting \acrshortpl{mst} were visually analyzed by color-coding the associated lineages (sublineages or clades), sampling dates and collection cities. The edges of the \acrshortpl{mst} were examined using a color-coding system divided into three categories: infectious edges ($w < 2$), regular edges ($2 \leq w \leq 5$), and outliers ($w > 5$). Furthermore, the structure of the \acrshortpl{mst} and the connections between the node clusters of the \acrshortpl{mst} were investigated regarding the distributions of the outbreak-related attributes. The \acrshortpl{mst} were generated using the Python package \textit{NetworkX} \cite{Net1} and visualized with the \textit{Gephi} software \cite{Gep1}. ForceAtlas2 was used for the layout as it shows the clearest clusters and provides the most flexible configuration options (see Section \ref{sec:visualization_of_viral_outbreak_dynamics}).
+
+Figure \ref{fig:products_and_references} defines the concrete distance matrices and \acrshortpl{mst} produced by the introduced approaches. The figure also illustrates qualitative comparisons of the distance matrices and \acrshortpl{mst} performed during the evaluation process of this work. Reference matrices are located at the ends of the dashed arrows, and produced matrices are located at the ends of the solid arrows.
+Since the genetic distance approximation was only used as a preparatory step to selectively calculate the exact genetic distances with \acrshort{ccs}, no \acrshortpl{mst} were evaluated on the basis of approximate genetic distance matrices. The modified algorithm was used to evaluate the genetic distance approximation, \acrshort{ccs} and \acrshort{acs}, because this procedure resulted in a more feasible runtime during the evaluation in the context of this work.
+The distance matrices produced by \acrshort{ccs} were compared to those produced by the modified algorithm in terms of infection recall. In the subsequent sections, $T$\textsubscript{ACS} refers to an \acrshort{mst} generated on the basis of AND/OR-\acrshort{lsh}.
+
+\begin{figure}[ht]
+\centering    
+\tikzset{
+    approach/.style={draw, fill=gray!20, align=center, minimum height=1cm},
+    output/.style={draw, fill=white!20, align=center, minimum height=1cm},
+    produces/.style={->},
+    compares/.style={->, dashed}
+}
+\begin{tikzpicture}
+    \matrix[matrix of nodes, row sep=1cm, column sep=1.5cm] {
+      \node[approach] (gen) {GENTRAIN algorithm}; & \node[output] (d_gen) {$D$\textsubscript{gen}}; & \node[output] (t_gen) {$T$\textsubscript{gen}}; \\
+      \node[approach] (mod) {Modified algorithm}; & \node[output] (d_mod) {$D$\textsubscript{mod}};
+      &\node[output] (t_mod) {$T$\textsubscript{mod}}; \\
+      \node[approach] (app) {Genetic distance approximation}; & \node[output] (d_app) {$\tilde{D}$\textsubscript{gen}}; \\
+      \node[approach] (ccs) {\Acrfull{ccs}}; & \node[output] (d_ccs) {$D$\textsubscript{CCS}};
+      &\node[output] (t_ccs) {$T$\textsubscript{CCS}}; \\
+      \node[approach] (acs) {\Acrfull{acs}}; & \node[output] (d_acs) {$D$\textsubscript{ACS}};
+      &\node[output] (t_acs) {$T$\textsubscript{ACS}}; \\
+    };
+
+    \draw[produces] (gen) -- (d_gen);
+    \draw[produces] (d_gen) -- (t_gen);
+    
+    \draw[produces] (mod) -- (d_mod);
+    \draw[produces] (d_mod) -- (t_mod);
+    \draw[compares] (d_mod) -- (d_gen);
+    \draw[compares] (t_mod) -- (t_gen);
+    
+    \draw[produces] (app) -- (d_app);
+    \draw[compares] (d_app) -- (d_mod);
+
+    \draw[produces] (ccs) -- (d_ccs);
+    \draw[produces] (d_ccs) -- (t_ccs);
+    \draw[compares, bend right=30] (d_ccs) to (d_mod);
+    \draw[compares] (t_ccs) -- (t_mod);
+
+    \draw[produces] (acs) -- (d_acs);
+    \draw[produces] (d_acs) -- (t_acs);
+    \draw[compares, bend right=40] (d_acs) to (d_mod);
+    \draw[compares, bend right=30] (t_acs) to (t_mod);
+\end{tikzpicture}
+\caption[Produced distance matrices and \acrshortpl{mst} of the approaches carried out]{Produced distance matrices and \acrshortpl{mst} of the approaches carried out. White boxes represent distance matrices and \acrshortpl{mst}, while gray boxes represent approaches to produce these. Solid arrows indicate the production of distance matrices or \acrshortpl{mst} and dashed arrows indicate quantitative comparisons between different distance matrices or \acrshortpl{mst} performed in the context of this work.}
+\label{fig:products_and_references}
+\end{figure}

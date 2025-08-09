@@ -1,0 +1,572 @@
+\section{Results}
+\label{cha:results}
+This chapter presents the results of the various approaches implemented. First, the suitability of the dataset used was evaluated in terms of its geographic and seasonal distribution. Subsequently, the infection dynamics of different data aggregates representing plausible outbreak scenarios was observed. The investigation also covered how \acrshortpl{mst} represent outbreak dynamics and how Louvain community detection can address these. Genetic distance matrices and \acrshortpl{mst} were generated for several seasonal and geographic aggregates using the approaches introduced in Section \ref{sec:implementation}. The metrics described in Section \ref{sec:evaluation} were obtained to evaluate the preserved interpretability for outbreak analysis and the remaining runtime was compared. All results are attached as \textit{Jupyter} notebooks in the accompanying repository \cite{Git1}.
+
+\subsection{Sequence Distribution and Mutation Dynamics}
+\label{sec:data_analysis_results}
+The assembled dataset spans the period from January 2020 to April 2025. However, following the implementation of the ordinance for the surveillance of SARS-CoV-2 in January 2021, a substantial increase in the number of sequences in the dataset could be observed. Following a series of extensions to its validity, the ordinance expired in May 2023 \cite{Rki1}, resulting in an immediate decrease in the number of sequenced samples in the dataset from April 2023. The following observations focus on the period from January 2021 to April 2023, during which a constant transmission of sequenced samples was guaranteed. The dataset contains a total of 1,192,040 sequences. In March 2022, the maximum number of available sequences (109,304) was reached, coinciding with the peak in positive cases per month during the pandemic \cite{Rki3}. In contrast, the minimum number of available sequences per month was marked in April 2023, immediately preceding the expiration of the obligatory sequence transmission.
+Thirteen variants were identified during the observation period that spanned January 2021 to April 2023. The prevalent variants were Alpha from January 2021 to May 2021, Delta from July 2021 to December 2021 and Omicron from January 2021 to April 2023. Figure \ref{fig:variant_distribution} illustrates the evolution of the variant distribution from January 2021 to April 2023. During this period, Alpha represented 12.4~\% of the cases, Delta for 23~\%, and Omicron for 59~\%.
+
+\begin{figure}[ht!]
+  \centering
+    \includesvg[width=.8\textwidth]{variant_distribution_over_time}
+  \caption{Seasonal distribution of sequences and variants}
+\label{fig:variant_distribution}
+\end{figure}
+
+The dataset contains sequences from all 16 federal states of Germany, with the highest numbers of sequences originating from North Rhine-Westphalia, Baden-Württemberg and Bavaria. The laboratories that collected the samples were located primarily in major cities. A dependency could be observed between the sequencing and the population density of the federal states in Germany \cite{Dem1}. In terms of sequencing technology, most of the sequences were obtained using the Illumina method (90.4~\%). 2.5~\% of the sequences were obtained using Ion Torrent technology and 6.5~\% were obtained using Oxford Nanopore sequencing.
+
+\begin{figure}[ht!]
+  \centering
+    \includesvg[width=.8\textwidth]
+    {median_amount_of_mutations_per_sequence_per_month}
+    \caption{Seasonal distribution of mutations per sequence}
+\label{fig:median_amount_of_mutations_per_sequence_per_month}
+\end{figure}
+
+The dataset was further analyzed in terms of mutation dynamics.
+Figure \ref{fig:median_amount_of_mutations_per_sequence_per_month} shows the seasonal increase in the median number of mutations per sequence. An almost consistent and gradual increase in the average number of \acrshortpl{snv} could be observed. The median number of deletions per sequence also exhibited high numbers, although there was no gradual increase over time. The median value of insertions per sequence was 0 for most months. However, it should be noted that a particularly high number of insertions occurred in January 2022 (9 insertions per sequence) and a rather high number in February 2022 (1 insertion per sequence). Subsequently, a substantial increase in the median number of deletions per sequence was also observed. Investigating the median number of mutations per sequence based on the federal state of probe extraction revealed an equal geographic distribution within Germany (see Figure \ref{fig:median_mutations_per_federal_state} in Appendix \ref{app:supplementary_figures}).
+
+\subsection{Seasonal and Geographic Aggregates}
+\label{sec:representative_data_aggregates}
+The dataset was separated into data aggregates based on seasonal periods and geographic areas. The entire year 2022 was selected as the largest seasonal period because it is the year with the highest sequence availability. In addition, the transition from the Delta to the Omicron variant was included in January 2022, which represents a period of particularly interesting mutation behavior. Also, March 2022 and the first week of March 2022 were chosen because there was a lot of sequence availability.
+Regarding the geographic area, the city of Düsseldorf, the federal state of \acrfull{nrw}, and Germany were observed, a decision that was made based on the substantial sequencing coverage in Düsseldorf and \acrshort{nrw}, as well as the assignment of the GENTRAIN project to this geographic location. In the subsequent sections of this work, the aggregates are labeled with the names introduced in Figure \ref{fig:data_aggregates} under each concrete seasonal period and geographic area. The number of available sequences is also included, which varied significantly depending on seasonal and geographic factors. 
+
+\begin{figure}[ht!]
+\includesvg[width=0.7\textwidth]{data_aggregates}
+    \centering
+    \caption{Seasonal and geographic data aggregation}
+\label{fig:data_aggregates}
+\end{figure}
+
+Figure \ref{fig:seasonal_and_geographical_impact} shows the amounts of sequences obtained from each aggregate (a), as well as the number of clades contained within each aggregate (b). A notable observation was that the number of clades remained relatively constant across different geographic areas, even though the number of sequences present varied significantly. A substantial increase in the number of clades was evident over the course of an entire year in comparison with a month. However, this increase did not appear to be proportional to the number of months included, which was consistent with the observation that most clades spread over several months (see Figure \ref{fig:clade_distribution_over_time} in Appendix \ref{app:supplementary_figures}).
+Figure \ref{fig:seasonal_and_geographical_impact} also revealed that while \acrshort{nrw} and Germany exhibited analogous infection rates (c), Düsseldorf showed higher values for both parameters. At the municipal level, the infection rate was notably high, particularly during the shorter seasonal periods. 
+In contrast, it did not have a significant impact on the infection rate whether a federal state or a country was observed.
+
+\begin{figure}[ht!]
+  \centering
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includesvg[width=\linewidth]{sequence_counts}
+    \caption*{(a) Sequence availability}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.32\textwidth}
+    \includesvg[width=\linewidth]{clade_counts}
+    \caption*{(b) Clade distribution}
+  \end{subfigure}
+    \begin{subfigure}[b]{0.32\textwidth}
+    \includesvg[width=\linewidth]{infection_rates}
+    \caption*{(c) Infection rate}
+  \end{subfigure}
+  \caption[Sequence availability and genomic dynamics]{Sequence availability and genomic dynamics. To obtain complete genetic distance matrices regarding the infection rate, the aggregates were downsampled to a maximum of 1,250 sequences.}
+  \label{fig:seasonal_and_geographical_impact}
+\end{figure}
+
+Figure \ref{fig:msts_due_2022} shows the resulting \acrshort{mst} for due\_202203, while Figure \ref{fig:msts_nrw_2022} shows the \acrshort{mst} for nrw\_2022. The nodes within the \acrshortpl{mst} are colored based on different outbreak-related attributes. For both \acrshortpl{mst}, in Subfigure (a), the nodes are colored according to the Louvain communities detected. In the case of due\_202203 Subfigure (b) shows the sublineage of the sequences, while for nrw\_2022 Subfigure (b) differs between associated clades. The clade association provides more information during longer seasonal periods, which is why sublineages were prioritized for due\_202203. For both figures, Subfigure (c) shows the distribution of sampling dates, where the red nodes represent later-sampled sequences and the yellow nodes represent earlier-sampled sequences. Concerning nrw\_2022, the cities of collection (d) are also represented. For the latter, only the sequences originating from Cologne are highlighted to preserve clarity, as Cologne appeared to have a larger coverage area when it comes to sequence collection by primary diagnostic laboratories (see Figure \ref{fig:geographic_sequence_distribution} in Appendix \ref{app:supplementary_figures}). This enables a clearer observation of the geographic distribution within the \acrshort{mst}. 
+In the context of infectious distances, the edges are colored red, enabling investigation of the distribution and density of infections. Outlier edges representing genetic distances greater than 5 are colored gray, as they far exceed the mean edge weight of the \acrshort{mst}.
+
+The Louvain community detection found sequence clusters representing circular node constellations within the \acrshortpl{mst}. For due\_202203 there were less but larger communities detected compared to nrw\_2022. For both \acrshortpl{mst}, the communities were interconnected mostly by infectious distance edges. Upon closer inspection, it became clear that due\_202203 showed lower edge weights within the communities than nrw\_2022. While only a negligible number of outlier edges were visible for due\_2022, there were several outlier edges present within the detected communities of nrw\_2022. In terms of the lineages, the sequence communities for due\_2022 were less pure than those observed for nrw\_2022. However, there was still a strong correlation between communities and lineage associations for both aggregates. It is noticeable that Louvain communities were sometimes even capable of distinguishing between the smaller lineage clusters. The aggregates showed significantly different behavior in terms of sampling date distributions. Although there was no clustering relative to the sampling dates recognizable for due\_2022, the node clusters of nrw\_2022 were well structured based on the associated sampling dates. Furthermore, the sampling dates were represented by the overall structure of the \acrshort{mst}, as the order of the sampling dates was represented by the sequential chaining of clusters. So, the order of the months could be traced following the edges of the \acrshort{mst}. The sequences associated with clade 22D were an exception to this phenomenon, appearing to be misplaced in terms of sampling date order. For nrw\_2022, there were several clusters of nodes that contained only sequences associated with the city of Cologne. However, several highlighted nodes were also spread across other node clusters. To validate the influence of geographic origin, the clustering of other metropolises was also observed and found to be less pronounced than for sequences originating from Cologne.
+
+\begin{figure}[H]
+    \begin{subfigure}[b]{0.32\textwidth}
+    \includesvg[width=\linewidth]{community_graph_due_202203}
+    \caption*{(a) Louvain communities}
+  \end{subfigure}
+    \begin{subfigure}[b]{0.32\textwidth}
+    \includesvg[width=\linewidth]{sublineage_graph_due_202203}
+    \caption*{(b) Sublineages}
+  \end{subfigure}
+    \begin{subfigure}[b]{0.32\textwidth}
+    \includesvg[width=\linewidth]{date_graph_due_202203}
+    \caption*{(d) Sampling dates}
+  \end{subfigure}
+  \caption[$T$\textsubscript{gen} for due\_202203 downsampled to 1,250 sequences]{$T$\textsubscript{gen} for due\_202203 downsampled to 1,250 sequences}
+  \label{fig:msts_due_2022}
+\end{figure}
+
+\begin{figure}[H]
+    \begin{subfigure}[b]{0.495\textwidth}
+    \includesvg[width=\linewidth]{community_graph_nrw_2022}
+    \caption*{(a) Louvain communities}
+  \end{subfigure}
+    \begin{subfigure}[b]{0.495\textwidth}
+    \includesvg[width=\linewidth]{clade_graph_nrw_2022}
+    \caption*{(b) Clades}
+  \end{subfigure}
+  \par\vspace{1em} 
+    \begin{subfigure}[b]{0.495\textwidth}
+    \includesvg[width=\linewidth]{date_graph_nrw_2022}
+    \caption*{(c) Sampling dates}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.495\textwidth}
+    \includesvg[width=\linewidth]{city_graph_nrw_2022}
+    \caption*{(d) Cities of collection}
+  \end{subfigure}
+  \caption[$T$\textsubscript{gen} for nrw\_2022 downsampled to 1,250 sequences]{$T$\textsubscript{gen} for nrw\_2022 downsampled to 1,250 sequences. The red circles in Subfigure (d) indicate clusters consisting primarily of sequences from Cologne.}
+  \label{fig:msts_nrw_2022}
+\end{figure}
+
+\subsection{Modification of the GENTRAIN Algorithm}
+\label{sec:optimized_algorithm_results}
+As a first measure, the GENTRAIN algorithm was modified by considering solely the mutated positions of the genomes. Section \ref{sec:optimization_of_the_gentrain_algorithm} provides a detailed explanation of the adjustments applied to the original algorithm. Table \ref{table:algorithm_optimization_evaluation} compares the resulting preservation scores for the distance matrices resulting from the modified algorithm for different seasonal and geographic aggregates of size 1,250. 
+
+\begin{table}[ht!]
+        \centering
+        \caption[Comparison of $D$\textsubscript{mod} to $D$\textsubscript{gen}]{Comparison of $D$\textsubscript{mod} to $D$\textsubscript{gen}. The observed aggregates were downsampled to 1,250 sequences.}
+        \begin{threeparttable}
+        \begin{tabular}{ Sc | Sc Sc Sc Sc Sc } 
+        Aggregate & $\text{sRMSE}$ & $\text{sRMSE}_{inf}$ & $\tau_B$ & $R_{inf}$ & $P_{inf}$ \\
+        \hline\hline
+        due\_202203 & -1.515 & -0.335 & 0.941 & 0.978 & 0.689 \\
+        nrw\_202203 & -1.776 & -0.301 & 0.917 & 0.99 & 0.577 \\
+        due\_2022 & -2.416 & -0.348 & 0.955 & 0.993 & 0.732 \\
+        nrw\_2022 & -1.877 & -0.401 & 0.962 & 0.983 & 0.544\\
+        \end{tabular}               
+        \end{threeparttable}
+        \label{table:algorithm_optimization_evaluation}
+\end{table}
+        
+The distances differed by at least -1.515 (due\_202203) and by at most of 2.416 (due\_2022) from the distances of $D$\textsubscript{gen}. The error obtained for infectious distances was lower, ranging from -0.301 (nrw\_202203) to -0.401 (nrw\_2022). For all observed aggregates, $\tau_b$ scores greater than 0.9 were obtained, with correlations ranging from 0.917 (nrw\_202203) to 0.962 (nrw\_2022). In terms of infection recall, all aggregates exhibited high values of at least 0.97. In contrast, the infection precision was lower for all aggregates, ranging from 0.544 (nrw\_2022) to 0.732 (nrw\_202203). The aggregates comprising a smaller geographic area achieved higher infection precisions, which did not impact the infection recalls.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includesvg[width=\linewidth]{modification_offset_due_202203}
+    \caption*{(a) due\_202203}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includesvg[width=\linewidth]{modification_offset_nrw_2022}
+    \caption*{(b) nrw\_2022}
+  \end{subfigure}
+  \caption[Error comparison of $D$\textsubscript{mod} to $D$\textsubscript{gen}] {Error comparison of $D$\textsubscript{mod} to $D$\textsubscript{gen}. The observed aggregates, due\_202203 (a) and nrw\_2022 (b), were downsampled to 1,250 sequences each.}
+  \label{fig:optimization_offset}
+\end{figure}
+
+To improve comprehension of the distribution of errors within the genetic distance matrices, the difference in the resulting distances in $D$\textsubscript{mod} and $D$\textsubscript{gen} is illustrated in Figure \ref{fig:optimization_offset}. The x-axis indicates the distance scale from $D$\textsubscript{gen}, while the y-axis denotes the distance scale from $D$\textsubscript{mod}. This scatterplot was generated for aggregates with significantly different infection dynamics, as detailed in Section \ref{sec:representative_data_aggregates}. As the distance matrices contained numerous genetic distances, the gray scale of the data points is based on the number of occurrences of each genetic distance difference. For example, if many genetic distances of 5 in $D$\textsubscript{gen} resulted in a distance of 3 in $D$\textsubscript{mod}, the corresponding datapoint in the scatterplot will be darker. The plots demonstrated the tendency of the modified algorithm to underestimate, as most of the data points were on the right side of the identity line, which means that the GENTRAIN algorithm produced higher values for these results. The darkest data points were located along the identity line, and only the most subtle data points were located on the sides of the identity line. For due\_202203, most of the data points ranged from 0 to 10, while for nrw\_2022 a wider range, from 5 to 35, was highly represented. 
+
+\begin{table}[H]
+        \caption[Comparison of $T$\textsubscript{mod} to $T$\textsubscript{gen}]{Comparison of $T$\textsubscript{mod} to $T$\textsubscript{gen}. The observed aggregates were downsampled to 1,250 sequences.}
+        \centering
+        \begin{threeparttable}
+        \begin{tabular}{ Sc | Sc Sc Sc } 
+        Aggregate & $\text{ARI}_{com}$ & $p_{\ell,{\text{MST}}}$ & $\bar w$ \\
+        \hline\hline
+        due\_202203 & 0.584 & 0.866 (+0.0248\textsuperscript{a}) & 2.0 (-0.24\textsuperscript{a})\\
+        nrw\_202203 & 0.452 & 0.8304 (-0.0008\textsuperscript{a}) & 2.37 (-0.43\textsuperscript{a}) \\
+        due\_2022 & 0.239 & 0.952 (-0.00159\textsuperscript{a}) & 3.76 (-0.5\textsuperscript{a})\\
+        nrw\_2022 & 0.307 & 0.952 (-0.0008\textsuperscript{a}) &  4.3 (-0.56\textsuperscript{a})\\
+        \end{tabular}
+                    \begin{tablenotes}[flushleft]
+                \small
+                \item[a] Difference relative to the corresponding  $T$\textsubscript{gen}
+            \end{tablenotes}
+        \end{threeparttable}
+        \label{table:algorithm_optimization_mst_evaluation}
+\end{table}
+
+Furthermore, the resulting \acrshortpl{mst} were evaluated with respect to the community ARI scores, lineage purities, and mean edge weights (see Table \ref{table:algorithm_optimization_mst_evaluation}). The community ARI scores ranged from 0.239 to 0.584. However, the results for lineage purity showed very high rates, with a minimum of 0.83 (nrw\_2022) and a maximum of 0.952 (due\_2022). These values were comparable to those of $T$\textsubscript{gen}, which also applied to the mean edge weights. The absolute mean edge weight difference to $T$\textsubscript{gen} increased with longer seasonal period and wider geographic area.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.49\textwidth}
+    \includesvg[width=\linewidth]{optimized_nrw_2022_communities}
+    \caption*{(a) Original Louvain communities}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.49\textwidth}
+    \includesvg[width=\linewidth]{optimized_nrw_2022_clades}
+    \caption*{(b) Clades}
+  \end{subfigure}
+     \par\vspace{1em}
+  \begin{subfigure}[b]{0.49\textwidth}
+    \includesvg[width=\linewidth]{optimized_nrw_2022_dates}
+    \caption*{(c) Sampling dates}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.49\textwidth}
+    \includesvg[width=\linewidth]{optimized_nrw_2022_cities}
+    \caption*{(d) Cities of collection}
+  \end{subfigure}
+  \caption[$T$\textsubscript{mod} for nrw\_2022 downsampled to 1,250 sequences]{$T$\textsubscript{mod} for nrw\_2022 downsampled to sequences. The red circles in Subfigure (d) indicate clusters consisting primarily of sequences from Cologne.}
+  \label{fig:gentrain_vs_optimization_mst_nrw_2022}
+\end{figure}
+
+To provide context to these values, Figure \ref{fig:gentrain_vs_optimization_mst_nrw_2022} shows $T$\textsubscript{mod} for nrw\_2022 downsampled to 1,250 sequences. In general, the communities detected within $T$\textsubscript{gen} could be distinguished, but several nodes were also associated with new communities. Lineage associations were clearly separated by the \acrshort{mst} clusters. However, the arrangement of the clades was partially inconsistent with $T$\textsubscript{gen}, as can be seen with clade 22E. $T$\textsubscript{mod} exhibited clusters reflecting a clear seasonal context, although the seasonal order of sampling was not as accurate as for $T$\textsubscript{gen}. This could be seen with the latest sampled sequences, which were positioned in the middle of the sequential cluster chain. When the original algorithm was used, these nodes formed the very end of the seasonal cluster chain. Several of these nodes were also associated with the misplaced clade 22E. In contrast, the yellow nodes remained at the beginning of the seasonal cluster chain. In terms of city association, the sequences originating from Cologne formed several exclusive node clusters, as previously observed for the original \acrshort{mst}.
+
+\begin{figure}[H]
+  \centering
+    \includesvg[width=.9\textwidth]{optimized_clades_nrw_2022_10000}
+    \caption[$T$\textsubscript{mod} for nrw\_2022 downsampled to 10,000 sequences]{$T$\textsubscript{mod} for nrw\_2022 downsampled to 10,000 sequences. The nodes were colored based on clade associations.}
+  \label{fig:gentrain_vs_optimization_mst_nrw_2022_10000}
+\end{figure}
+
+Furthermore, observations based on 1,250 sequences were validated regarding their significance with respect to a larger sequence number of 10,000 (see Figure \ref{fig:gentrain_vs_optimization_mst_nrw_2022_10000} and Figure \ref{fig:outbreak_releated_attributes_optimized}). The sequences of different clades were more scattered compared to the previous observations. However, it was also observed that clade 21K remained separate from the other clades and continued to be connected only to clade 21L, which corresponds to the order of clade development. In contrast, clade 21L is placed in the center of the graph connecting multiple node clusters of clade 22B and 22E. This scattering phenomenon was also observed for the sampling dates, whereas the geographic contexts were still represented through several clusters with sequences from Cologne. In contrast to the deviating global structure of the \acrshort{mst}, clear clade and sampling date associations were observed within the node clusters. All larger communities within the \acrshort{mst} were connected with edges of infectious distances.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{.495\textwidth}
+    \includesvg[width=\linewidth]{optimized_dates_nrw_2022_10000}
+    \caption*{(a) Sampling dates}
+  \end{subfigure}
+    \begin{subfigure}[b]{.495\textwidth}
+    \includesvg[width=\linewidth]{optimized_cities_nrw_2022_10000}
+    \caption*{(b) Cities of collection}
+  \end{subfigure}
+  \caption[Outbreak-related attributes within $T$\textsubscript{mod}]{Outbreak-related attributes within $T$\textsubscript{mod}. The aggregate, nrw\_2022, was downsampled to 10,000 sequences. Figure \ref{fig:large_scale_sampling_date_acs} form Appendix \ref{app:supplementary_figures} provides a larger scale variant. The red circles in Subfigure (b) indicate clusters consisting primarily of sequences from Cologne.}
+  \label{fig:outbreak_releated_attributes_optimized}
+\end{figure}
+
+\subsection{Complete Candidate Search}
+The focus of the algorithm modification was to minimize the runtime of a single genetic distance calculation. In contrast, \acrshort{ccs} aimed to minimize the impact of quadratic runtime through approximating genetic distance matrices and using them to perform a search for the most relevant candidates.
+
+The genetic distance matrix approximation was compared on the basis of three mutation encodings using different filtering configurations. The first encoding considered all reference positions for which a mutation was found in any of the sequences considered. The second encoding used \acrshort{nff} to filter positions, which showed high frequencies of missing symbols. A third encoding focused specifically on characteristic \acrshortpl{snv} by applying \acrshort{snvff}. This encoding also used \acrshort{nff} as it was deemed essential to prevent overestimation. 
+In terms of the characteristic \acrshortpl{snv} that occur most infrequently, the occurrence count was 2 for all aggregates. Consequently, \acrshortpl{snv} that occur in one single sequence were filtered from the third encoding. In contrast, the maximum value yielded percentage frequencies of \acrshortpl{snv} between 0.54~\% and 1.11~\% of the total sequences considered. Since the defined aggregates do not cover the entire picture, a slightly higher threshold of 2~\% was chosen to filter \acrshortpl{snv} by maximum occurrences.
+Table \ref{table:encoding_lengths} lists the lengths of the resulting mutation encodings. It includes aggregates of different sizes, demonstrating that larger aggregates resulted in more extensive encodings. In addition, longer seasonal periods and wider geographic areas also resulted in greater encoding lengths. It is evident that both filtering approaches decreased the length of the encoding.
+
+\begin{table}[H]
+    \caption[Encoding lengths for different sample sizes and aggregates]{Encoding lengths for different sample sizes and aggregates. Different encoding approaches were used.}
+    \centering
+    \begin{tabular}{Sc | Sc | Sc Sc Sc}
+        Sample size & Aggregate & No filter & \acrshort{nff} & \acrshort{nff} \& \acrshort{snvff} \\
+            \hline    
+            \hline    
+            1,250 & due\_202203 & 1,952 & 1,840 & 600 \\
+            & nrw\_2022 & 3,480 & 3,192 & 1,104 \\
+            \hline
+            2,500 & due\_202203 & 3,104 & 2,912 & 1,200 \\
+            & nrw\_2022 & 5,504 & 5,088 & 2,152 \\
+            \hline
+            5,000 & due\_202203 & 4,112 & 3,880 & 1,856 \\
+            & nrw\_2022 & 7,960 & 7,328 & 3,664 \\
+    \end{tabular}
+    \label{table:encoding_lengths}
+\end{table}
+
+Table \ref{table:approximation_matrix_evaluation_for_aggregates} lists the evaluation scores for approximate genetic distance matrices for aggregates with significantly different infection dynamics (due\_202203 and nrw\_2022). Clearly, the encoding using only \acrshort{nff} led to the highest rank-based correlations with scores of 0.816 (for due\_202203) and 0.838 (for nrw\_2022). The other two encoding approaches led to lower $\tau_b$ correlations, which still indicated a rather strong correlation between $\tilde{D}$\textsubscript{gen} and $D$\textsubscript{mod}. Using both position filters yielded the lowest $\text{sRMSE}$ results, while the correlation remained comparable to the encoding without any filters. Evaluating the results for the $\text{sRMSE}_{inf}$ metric revealed that all approaches overestimated infectious distances. However, using \acrshort{nff} significantly decreased scores and using both filters optimized the results even further. Given this overestimation of infections, it was not surprising that infection recalls were relatively low. For due\_202203 without filters, only around 10~\% of the present infections were identified. This increased to around 50~\% when filtering positions based on missing symbol frequencies. However, for nrw\_2022, \acrshort{nff} only led to an infection recall of 0.171. Using both position filters significantly increased infection recall, as due\_202203 scored 0.786 and nrw\_2022 scored 0.426. The infection precision results showed the opposite behavior. Without filters, values greater than 0.9 were achieved for both aggregates. However, the use of \acrshort{nff} reduced the infection precision to 0.79 (due\_202203) and to 0.66 (nrw\_2022). A significant decrease in precision occurred when the positions were additionally filtered according to the \acrshort{snv} occurrences. The cost of this increase was the significant underestimation of genetic distances, as indicated by low $\text{sRMSE}$ scores.
+
+\begin{table}[H]    
+        \caption[Comparison of $\tilde{D}$\textsubscript{gen} to $D$\textsubscript{mod}]{Comparison of $\tilde{D}$\textsubscript{gen} to $D$\textsubscript{mod}. The aggregates were downsampled to 1,250 sequences.}
+        \centering
+        \begin{threeparttable}
+        \begin{tabular}{ Sc | Sc | Sc Sc Sc Sc Sc Sc } 
+        Aggregate & Filter & $\text{sRMSE}$ & $\text{sRMSE}_{inf}$ & $\tau_b$ & $R_{inf}$ & $P_{inf}$\\
+        \hline\hline
+        due\_202203&None&10.58&12.73&0.671&0.136&0.911\\
+        &\acrshort{nff}&-3.832&7.14&0.816&0.518&0.799\\
+        &\acrshort{nff} \& \acrshort{snvff}&-21.42&1.24&0.745&0.786&0.195\\
+        \hline
+        nrw\_2022&None&13.69&11.70&0.764&0.052&0.933\\
+        &\acrshort{nff}&-9.838&4.95&0.838&0.171&0.657\\
+        &\acrshort{nff} \& \acrshort{snvff}&-20.873&2.39&0.697&0.426&0.085\\
+        \end{tabular}
+        \end{threeparttable}
+        \label{table:approximation_matrix_evaluation_for_aggregates}
+\end{table}
+
+This underestimation can also be observed in Figure \ref{fig:approximation_offset}, which shows the distribution of genetic distance errors between $\tilde{D}$\textsubscript{gen} to $D$\textsubscript{mod}. Clearly, the data points were more scattered and therefore more error-prone than the analog comparison in Section \ref{sec:optimized_algorithm_results} regarding the algorithm modification. However, most of the data points, indicated by darker coloring, were positioned near the identity lines, for both aggregates under consideration (due\_202203 and nrw\_2022). There was a group of data points with a genetic distance of around 50 to 55 using the modified algorithm, which scored much lower (10 to 20) when approximating the genetic distance. In addition, a group of highly overestimated genetic distances was evident for nrw\_2022 in the genetic distance range of 30 to 140. However, this phenomenon was reflected in a relatively low number of occurrences within $\tilde{D}$\textsubscript{gen}. In general, a strict underestimation of results was observed when considering data points with a high number of occurrences.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includesvg[width=\linewidth]{approximation_offset_due_202203}
+    \caption*{(a) due\_202203}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\textwidth}
+    \includesvg[width=\linewidth]    {approximation_offset_nrw_2022}
+    \caption*{(b) nrw\_2022}
+  \end{subfigure}
+  \caption[Error comparison of $\tilde{D}$\textsubscript{gen} to $D$\textsubscript{mod}]{Error comparison of $\tilde{D}$\textsubscript{gen} to $D$\textsubscript{mod}. The observed aggregates, due\_202203 (a) and nrw\_2022 (b), were downsampled to 1,250 sequences.}
+  \label{fig:approximation_offset}
+\end{figure}
+
+The motivation behind \acrshort{ccs} was to obtain exact genetic distances, or at least the results of the modified algorithm, to ensure genetic correctness while optimizing runtime and memory usage. As described in Section \ref{sec:accurate_candidate_search}, two different search strategies, depth search and breadth search, were applied.
+Figure \ref{fig:depth_vs_breadth} shows bar plots for depth search as well as breadth search with respect to the results for infection recall (a) and community ARI (b) for different calculation rates (0.05, 0.1, 0.15, 0.2). It is obvious that depth search outperformed breadth search in relation to infection recall. Infection recall increased strictly with the calculation rate for both search strategies, where the results for the depth search were higher overall. The median infection recall for depth search ranged from 0.833 to 0.976, while the range for breadth search was between 0.56 and 0.87. The standard deviation of the infection recall results decreased with higher calculation rates for both search strategies and was generally lower for depth search (0.07) than for breadth search (0.17). Comparable observations could be made regarding the resulting median for community ARI scores. For both search strategies, the median community ARI increased with higher calculation rates. The resulting ranges were from 0.37 to 0.65 for depth search and from 0.27 to 0.43 for breadth search. The standard deviation in terms of community ARI was rather comparable, at 0.19 for the depth search and 0.16 for the breadth search.
+
+\begin{figure}[ht!]
+  \centering
+  \begin{subfigure}[b]{0.47\textwidth}
+    \includesvg[width=\linewidth]{depth_vs_breadth_infection_recall}
+    \caption*{(a) Infection recall for calculation rates}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.47\textwidth}
+    \includesvg[width=\linewidth]{depth_vs_breadth_community_ari}
+    \caption*{(b) Community ARI for calculation rates}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.47\textwidth}
+    \includesvg[width=\linewidth]{depth_vs_breadth_aggregates_community_ari}
+    \caption*{(c) Community ARI for aggregates}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.47\textwidth}
+    \includesvg[width=\linewidth]{depth_vs_breadth_sizes_community_ari}
+    \caption*{(d) Community ARI for sample sizes}
+  \end{subfigure}
+  \caption[Infection recall and community \acrshort{ari} scores for \acrshort{ccs}]{Infection recall and community \acrshort{ari} scores for \acrshort{ccs}. Subfigures (a) and (b) comprise results for the aggregates due\_202203, due\_2022, nrw\_202203 and nrw\_2022 with sample sizes of 1,250, 2,500 and 5,000. Subfigures (c) and (d) comprise results for calculation rates of 0.05, 0.1, 0.15 and 0.2. For the mutation encoding \acrshort{nff} and \acrshort{snvff} were used.}
+  \label{fig:depth_vs_breadth}
+\end{figure}
+
+To compare the results for different aggregates, Figure \ref{fig:depth_vs_breadth} also presents the community ARI results for seasonal and geographic aggregates (c), as well as for different sample sizes (d). Once again, depth search outperformed breadth search for all observed groups. Consequently, the subsequent investigation was focused on depth search results. The different sample sizes had no significant impact on the community \acrshort{ari} scores. A sample size of 2,500 achieved the highest median community \acrshort{ari} with 0.54, while considering 1,250 sequences resulted in a median of 0.45 and for the observation of 5,000 sequences, a median of 0.48 was obtained. When comparing different seasonal and geographic aggregates, the median community \acrshort{ari} increased with longer seasonal periods and wider geographic areas. In contrast, the values for due\_202203 showed a higher standard deviation than for the other aggregates. Furthermore, the maximum community ARI of this aggregate (0.76) far exceeded the maximum score of nrw\_202203 (0.62), which represents an irregularity in the results. As the complete list of results for the \acrshort{ccs} approach (see \ref{table:ccs_scores} in Appendix \ref{app:supplementary_tables}) shows, this was the only case where a lower seasonal period and geographic area scored better in terms of community \acrshort{ari} using depth search.
+
+Table \ref{table:accurate_cs_mst_evaluation_for_aggregate} shows the parameter scores used to evaluate the resulting \acrshortpl{mst} for due\_202203 and nrw\_2022. The mentioned inconsistency for due\_202203 is also included, while the other community ARI scores are comparable for different sizes of the same aggregate. In addition, lineage purity scores are listed, which demonstrated a low deviation from $T$\textsubscript{mod}. The highest deviation was observed for nrw\_2022 with 1,250 sequences, and the lowest deviation was seen for nrw\_2022 with 2,500. For most of the \acrshortpl{mst} resulting from \acrshort{ccs}, the lineage purity was even higher than that obtained from the corresponding $T$\textsubscript{mod}. In terms of mean edge weight, comparable values were exhibited in $T$\textsubscript{CCS} as in $T$\textsubscript{mod}. Most of the means indicated an underestimation of the edge weights resulting from the modified algorithm.
+
+\begin{table}[ht!]
+        \caption[Comparison of $T$\textsubscript{CCS} to $T$\textsubscript{mod}]{Comparison of $T$\textsubscript{CCS} to $T$\textsubscript{mod}. The observed aggregates, due\_202203 and nrw\_2022, were downsampled to 1,250, 2,500 and 5,000 sequences. Depth search and a calculation rate of 0.2 were used.}
+        \centering
+        \begin{threeparttable}
+        \begin{tabular}{ Sc | Sc | Sc Sc Sc } 
+        Aggregate & Sample size & $\text{ARI}_{com}$ & $p_{\ell,{\text{MST}}}$ & $\bar w$\\
+        \hline\hline
+        due\_202203&1,250& 0.444 & 0.924433 (+0.058\textsuperscript{a}) & 1.90 (-0.102\textsuperscript{a}) \\
+        &2,500&0.758& 0.995 (+0.021\textsuperscript{a})& 1.49 (-0.075\textsuperscript{a})\\
+        &5,000&0.336& 0.922 (+0.033\textsuperscript{a})& 1.34 (+0.013\textsuperscript{a})\\
+        \hline
+        nrw\_2022&1,250& 0.786 & 0.96 (+0.136\textsuperscript{a}) & 4.177 (-0.121\textsuperscript{a})\\
+        &2,500& 0.872 & 0.95 (+0.00002\textsuperscript{a}) & 3.71 (-0.117\textsuperscript{a})\\
+        &5,000& 0.853 & 0.96 (+0.005\textsuperscript{a})& 3.32 (-0.105\textsuperscript{a})\\
+        \end{tabular}
+            \begin{tablenotes}[flushleft]
+                \small
+                \item[a] Difference relative to the corresponding $T$\textsubscript{mod}
+            \end{tablenotes}
+        \end{threeparttable}
+    \label{table:accurate_cs_mst_evaluation_for_aggregate}
+\end{table}
+
+The preservation of the original \acrshort{mst} structure was visually evaluated by generating \acrshortpl{mst} based on the exact distances calculated selectively. First, $T$\textsubscript{CCS} for nrw\_2022 downsampled to 1,250 sequences was evaluated based on the clade distribution for calculation rates of 0.05 (a) and 0.2 (b) (see Figure \ref{fig:optimization_vs_accurate_cs_mst_nrw_2022}), which exhibited very different community \acrshort{ari} scores. The clades were clearly separated in $T$\textsubscript{CCS} for both aggregates. It is important to note that the resulting graphs were not fully connected because depth search does not ensure an equal number of candidates per sequence considered. The number of unconnected components increased with lower calculation rates. In both cases, the node component comprising sequences of clade 21K was separated from the primary subgraph. While a calculation rate of 0.2 grouped several sequences of clade 22D, these totally vanished for a calculation rate of 0.05. As seen when using the modified algorithm, a calculation rate of 0.2 led to a misplacement of the clade 22E that originally formed the end of the node cluster chain. At a calculation rate of 0.05, this misplacement was not apparent at first glance. However, when the nodes were colored based on sampling dates (see Figure \ref{fig:outbreak_related_attributes_accurate_cs}), it became evident that the order of sample collection was scattered within $T$\textsubscript{CCS}. The node clusters consisting of sequences with the latest sampling dates were spread across $T$\textsubscript{CCS}. However, the \acrshort{mst} was still separable into sections that correspond to different time intervals, in which the earliest sequences collected were completely separate from the primary subgraph. Concerning the representation of geographic origin, there were several node clusters that exclusively contained sequences associated with the city of Cologne.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.495\textwidth}
+    \includesvg[width=\linewidth]{accurate_cs_graph_nrw_2022_0.05}
+    \caption*{(a) $r_{calc}=0.05, \text{ARI}_{com}=0.477$}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.495\textwidth}
+    \includesvg[width=\linewidth]{accurate_cs_graph_nrw_2022_0.2}
+    \caption*{(b) $r_{calc}=0.2, \text{ARI}_{com}=0.786$}
+  \end{subfigure}
+  \caption[$T$\textsubscript{CCS} for nrw\_2022 using different calculation rates]{$T$\textsubscript{CCS} for nrw\_2022 using different calculation rates. The aggregate was downsampled to 1,250 sequences.}
+  \label{fig:optimization_vs_accurate_cs_mst_nrw_2022}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.47\textwidth}
+    \includesvg[width=\linewidth]{accurate_cs_graph_nrw_2022_0.05_dates}
+    \caption*{(a) Sampling dates}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.47\textwidth}
+    \includesvg[width=\linewidth]{accurate_cs_graph_nrw_2022_0.05_cities}
+    \caption*{(b) Cities of collection}
+  \end{subfigure}
+  \caption[Outbreak-related attributes within $T$\textsubscript{CCS}]{Outbreak-related attributes within $T$\textsubscript{CCS}. The aggregate, nrw\_2022, was downsampled to 1,250 sequences and the calculation rate was 0.05. Unconnected nodes were excluded to focus on the nodes participating in outbreak dynamics. The red circles in Subfigure (b) indicate clusters consisting primarily of sequences from Cologne.}
+  \label{fig:outbreak_related_attributes_accurate_cs}
+\end{figure}
+
+\subsection{Approximate Candidate Search}
+\label{sec:approximate_candidate_search_results}
+The previously presented results were the consequence of reducing the runtime of single genetic distance calculations, which was achieved by algorithmic modification and approximate genetic distance matrices. As a final measure, an ANNS approach was implemented to address the quadratic scaling of the calculation of distance matrices. The performed procedure was labeled \acrshort{acs}, which utilizes \acrshort{lsh} with AND/OR constructions to minimize false positives in terms of infections, as outlined in Section \ref{sec:approximate_candidate_search}. With nrw\_202203 and nrw\_2022, aggregates with very different infection dynamics and clade distribution were observed, which were downsampled to 10,000 sequences.
+First, mutation encodings for both aggregates were generated using \acrshort{nff} and \acrshort{snvff}. This resulted in an encoding length of 3776 for nrw\_202203 and 6328 for nrw\_2022. To evaluate the influence of the hash length, different lengths were chosen according to the encoding length of the observed aggregate. 
+
+Figure \ref{fig:approximate_cs_nrw_202203} shows infection recall (a) and community ARI scores (b) for nrw\_202203 using hash lengths of 2,000, 2,500 and 3,000 for different calculation rate. These resulted from the selection of different numbers of \acrshort{lsh} iterations (1, 2, 4, 8, 16, 64, 128, 256) to be performed. 
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.47\textwidth}
+    \includesvg[width=\linewidth]{approximate_cs_hash_lengths_infection_recall_nrw_202203}
+    \caption*{(a)}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.47\textwidth}
+    \includesvg[width=\linewidth]{approximate_cs_hash_lengths_ari_nrw_202203}
+    \caption*{(b)}
+  \end{subfigure}
+   \begin{subfigure}[b]{0.47\textwidth}
+    \includesvg[width=\linewidth]{approximate_cs_comparison_infection_recall_nrw_202203}
+    \caption*{(c)}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.47\textwidth}
+    \includesvg[width=\linewidth]{approximate_cs_comparison_ari_nrw_202203}
+    \caption*{(d)}
+  \end{subfigure}
+  \caption[Comparative evaluation of AND/OR-\acrshort{lsh} for nrw\_202203]{Comparative evaluation of AND/OR-\acrshort{lsh} for nrw\_202203. The aggregate was downsampled to 10,000 sequences. AND/OR-\acrshort{lsh} was compared to $T$\textsubscript{ACS} and an \acrshort{mst} resulting from \acrshort{hnsw}. For AND/OR-\acrshort{lsh}, the calculation rates depends on the number of \acrshort{lsh} iterations performed. The calculation rates presented for the other approaches in Subfigures (c) and (d) were oriented toward the resulting calculation rates of AND/OR-\acrshort{lsh}. Subfigures (c) and (d) include AND/OR-\acrshort{lsh} results for a hash length of 3,000.}
+  \label{fig:approximate_cs_nrw_202203}
+\end{figure}
+
+Throughout the entire result set, more iterations performed led to higher calculation rates, where only calculation rates lower than 0.1 were taken into account. It became clear that infection recall increased with the hash length and the amount of performed \acrshort{lsh} iterations. For calculation rates between 0.06 and 0.08 the infection recall scores ranged from 0.69 to 0.82. Using a hash length of 3,000 resulted in an infection recall greater than 0.5 with a calculation rate of around 0.017. When inspecting the community \acrshort{ari}, the maximum value of 0.205 was reached at a calculation rate of 0.07 with a hash length of 3,000. Although the scores obtained from different hash lengths were comparable at lower calculation rates, the discrepancy between them increased with the calculation rate.
+
+To provide context to these results, Subfigures (c) and (d) compare
+the AND/OR-\acrshort{lsh} results for a hash length of 3000 with scores resulting from \acrshort{ccs} and an \acrshort{hnsw} implementation. As expected the AND/OR-\acrshort{lsh} method scored overall lower than \acrshort{ccs}, but it was also evident that higher infection recalls were achieved than those obtained using \acrshort{hnsw}. The \acrshort{hnsw} approach scored lower than the AND/OR-\acrshort{lsh} approach throughout the entire range of shown calculation rates.
+In terms of community \acrshort{ari} scores, the situation looked different. Up to a calculation rate of 0.035, \acrshort{hnsw} achieved superior results. However, for higher calculation rates, the AND/OR-\acrshort{lsh} approach exhibited higher scores. The difference in community \acrshort{ari} scores between both approaches was not significant, with a maximum difference around 0.05.
+
+Figure \ref{fig:approximate_cs_nrw_2022} shows infection recall (a) and community ARI scores (b) for nrw\_2022 with hash lengths of 2,000, 3,000, and 4,000. These hash lengths were chosen to cover a wide range of the produced encoding length of 6,328. The numbers of \acrshort{lsh} iterations used were the same as for nrw\_202203 (1, 2, 4, 8, 16, 64, 128, 256). Once again, infection recall increased with the hash length and the number of \acrshort{lsh} iterations. Compared to a shorter seasonal period (nrw\_202203) higher scores were exhibited, particularly for lower calculation rates. Results greater than 0.8 were achieved for a hash length of 3,000 and calculation rates greater than 0.02.
+In terms of the community \acrshort{ari}, it was also evident that the overall score for this aggregate was higher compared to nrw\_202203. For hash lengths of 3,000 and 4,000, community \acrshort{ari} scores were greater than 0.3 when using a calculation rate higher than 0.05. For these hash lengths, community \acrshort{ari} scores greater than 0.5 were achieved for even higher calculation rates.
+A comparison of AND/OR-\acrshort{lsh} using a hash length of 3,000 and a calculation rate of approximately 0.04 with \acrshort{ccs} and \acrshort{hnsw} is shown in Subfigures (c) and (d) of Figure \ref{fig:approximate_cs_nrw_2022}. For very low calculation rates smaller than 0.01, both \acrshort{anns} implementations scored even in terms of infection recall. For higher calculation rates, AND/OR-\acrshort{lsh} consistently achieved higher infection recalls. As expected, \acrshort{ccs} showed the best results for infection recall throughout the entire calculation rate range. 
+When investigating the results for community \acrshort{ari}, a comparable situation was present, as observed for nrw\_202203. Higher scores were achieved by AND/OR-\acrshort{lsh} for calculation rates greater than 0.08, while lower scores were achieved by \acrshort{hnsw} for calculation rates lower than 0.08.
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.47\textwidth}
+    \includesvg[width=\linewidth]{approximate_cs_hash_lengths_infection_recall_nrw_2022}
+    \caption*{(a)}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.47\textwidth}
+    \includesvg[width=\linewidth]{approximate_cs_hash_lengths_ari_nrw_2022}
+    \caption*{(b)}
+  \end{subfigure}
+    \begin{subfigure}[b]{0.47\textwidth}
+    \includesvg[width=\linewidth]{approximate_cs_comparison_infection_recall_nrw_2022}
+    \caption*{(c)}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.47\textwidth}
+    \includesvg[width=\linewidth]{approximate_cs_comparison_ari_nrw_2022}
+    \caption*{(d)}
+  \end{subfigure}
+  \caption[Comparative evaluation of AND/OR-\acrshort{lsh} for nrw\_2022]{Comparative evaluation of AND/OR-\acrshort{lsh} for nrw\_2022. The aggregate was downsampled to 10,000 sequences. AND/OR-\acrshort{lsh} was compared to $T$\textsubscript{ACS} and an \acrshort{mst} resulting from \acrshort{hnsw}. For AND/OR-\acrshort{lsh}, the calculation rates depends on the number of \acrshort{lsh} iterations performed. The calculation rates presented for the other approaches in Subfigures (c) and (d) were oriented toward the resulting calculation rates of AND/OR-\acrshort{lsh}. Subfigures (c) and (d) include AND/OR-\acrshort{lsh} results for a hash length of 3,000.}
+  \label{fig:approximate_cs_nrw_2022}
+\end{figure}
+
+The resulting scores that assessed the preservation of \acrshort{mst} interpretability concerning nrw\_2022 were analyzed for different numbers of \acrshort{lsh} iterations. Table \ref{table:approximate_cs_mst_evaluation} shows the results achieved in terms of the community \acrshort{ari}, lineage purity, and mean edge weight with a hash length of 3,000. Furthermore, the resulting calculation rate is included, as this depends on the number of executed \acrshort{lsh} iterations. The community \acrshort{ari} increased with the number of \acrshort{lsh} iterations. However, the lineage purity of the resulting \acrshort{mst} was high, regardless of the number of \acrshort{lsh} iterations. The resulting mean edge weights were comparable to those of $T$\textsubscript{mod}, where 16 \acrshort{lsh} iterations showed the greatest difference with -0.172.
+
+\begin{table}[ht!]
+    \caption[Comparison of $T$\textsubscript{ACS} to $T$\textsubscript{mod}]{Comparison of $T$\textsubscript{ACS} to $T$\textsubscript{mod}. The observed aggregate, nrw\_2022, was downsampled to 10,000 sequences.}
+    \centering
+    \begin{threeparttable}
+        \begin{tabular}{ Sc | Sc | Sc Sc Sc } 
+        $n_{iterations}$ & $n_{calc}$ & $\text{ARI}_{com}$ & $p_{\ell,\text{MST}}$ & $\bar w$\\
+        \hline\hline
+        16 & 0.023 & 0.226 & 0.984 (+0.0199) & 2.84 (-0.172) \\
+        32 & 0.034 & 0.289 & 0.977 (+0.0136) & 2.95 (-0.068) \\
+        64 & 0.055 & 0.35 & 0.972 (+0.0083) & 3.02 (+0.009) \\
+        \end{tabular}
+        \end{threeparttable}
+        \label{table:approximate_cs_mst_evaluation}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+    \includesvg[width=.9\textwidth]{lsh_nrw_2022_10000}
+  \caption[$T$\textsubscript{ACS} for nrw\_2022 downsampled to 10,000 sequences]{$T$\textsubscript{ACS} for nrw\_2022 downsampled to 10,000 sequences. Unconnected nodes were excluded to focus on the nodes participating in outbreak dynamics. The nodes were colored based on clade associations.}
+  \label{fig:lsh_graphs_nrw_2022}
+\end{figure}
+
+Figure \ref{fig:lsh_graphs_nrw_2022} shows $T$\textsubscript{ACS} for nrw\_2022 with 10,000 sequences using AND/OR-\acrshort{lsh} with a hash length of 3,000 and a calculation rate of approximately 0.04. A clear separation of lineage associations by node clusters was visible. As observed for the modified algorithm, the clade 22B was scattered within the global \acrshort{mst} structure, whereas the clades 21K, 21L, and 22E did not show this behavior. The connected clusters of clade 22E resulting from AND/OR-\acrshort{lsh} were of particular interest, as they were divided within the corresponding $T$\textsubscript{mod}. Furthermore, a relation between sampling dates and node clusters became apparent (see Figure \ref{fig:lsh_graphs_nrw_2022_outbreak_related_attributes}). However, a central node cluster could be seen, which established connections between other clusters of nodes associated with the clade 22B. Consequently, the latest collected samples were split within the \acrshort{mst}, while the earliest samples remained at the beginning of the seasonal cluster chain. Regarding the representation of the geographic origin, several clusters showed a high purity of sequences originating from Cologne. It should be noted that AND/OR-\acrshort{lsh} produced unconnected components. For clarity reasons, small unconnected components were excluded from Figure \ref{fig:lsh_graphs_nrw_2022}, as they did not provide a significant informative value.
+
+\begin{figure}[H]
+  \centering
+    \par\vspace{1em} 
+  \begin{subfigure}[b]{0.495\textwidth}
+    \includesvg[width=\linewidth]{lsh_nrw_2022_10000_dates}
+    \caption*{(a) Sampling dates}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.495\textwidth}
+    \includesvg[width=\linewidth]{lsh_nrw_2022_10000_cities}
+    \caption*{(b) Cities of collection}
+  \end{subfigure}
+  \caption[Outbreak-related attributes within $T$\textsubscript{ACS}]{Outbreak-related attributes within $T$\textsubscript{ACS}. The aggregate, nrw\_2022, was downsampled 10,000 sequences. Unconnected nodes were excluded to focus on the nodes participating in outbreak dynamics. The red circles in Subfigure (b) indicate clusters consisting primarily of sequences from Cologne. Figure \ref{fig:large_scale_sampling_date_optimized} from Appendix \ref{app:supplementary_figures} provides a larger-scale variant.}
+\label{fig:lsh_graphs_nrw_2022_outbreak_related_attributes}
+\end{figure}
+
+\subsection{Runtime Comparison}
+\label{sec:runtime_comparison}
+This work introduced several concepts to optimize the GENTRAIN genetic distance calculation, to minimize the overall runtime of large scale datasets. Therefore, this section presents the resulting runtime for all approaches, taking into account every preparation and post-processing procedure involved.
+First, the runtime of the Nextclade mutation calling was analyzed, which is shown in Table \ref{table:nextclade_runtime_for_aggregate_sizes}. The runtime for different numbers of sequences considered is presented, which showed a linear relation between the sample size and the runtime of the process. It is important to note that mutation calling is obligatory for every approach introduced in this work, including the original algorithm.
+Table \ref{table:nextclade_runtime_for_aggregate_sizes} also presents the runtime required to generate the mutation encoding for different sample sizes. As was observed with Nextclade mutation calling, there is a linear relationship between the resulting runtime and the sample size. The last runtime contained in Table \ref{table:nextclade_runtime_for_aggregate_sizes} is the execution time required to execute the Prim algorithm to generate \acrshortpl{mst} for complete genetic distance matrices. It was evident here that runtime scaled dramatically with an increase in sample size. The runtime increased significantly between 5,000 and 10,000 sequences, rising from about one minute to around 50 minutes.
+
+\begin{table}[ht!]    
+\caption[Runtime of preparatory steps and the Prim algorithm]{Runtime of preparatory steps and the Prim algorithm. The observed aggregate, nrw 2022, was downsampled to the presented sample sizes. The preparatory steps include the Nextclade mutation calling and the generation of mutation encodings. Runtimes for the Nextclade mutation calling were averaged and rounded over five runs.}
+    \centering
+    \begin{tabular}{  Sc | Sc  Sc  Sc  Sc  Sc } 
+    Sample size & 1,250 & 2,500 & 5,000 & 10,000\\
+    \hline\hline
+    Mutation calling & $\sim7.5$ s & $\sim15.0$ s & $\sim30.0$ s & $\sim60.0$ s\\
+    Mutation encoding & 27.59 s & 37.45 s & 62.13 s & 1.95 min\\
+    Prim algorithm&1.49 s&14.63 s&59.43 s& 48.77 min\\
+    \end{tabular}
+    \label{table:nextclade_runtime_for_aggregate_sizes}
+\end{table}
+
+To evaluate the performance improvements achieved through the algorithmic adjustments, genetic distance matrices were calculated using the modified algorithm, as well as the original algorithm. Table \ref{table:algorithm_and_approximation_runtime_comparison} compares the runtime for different numbers of sequences between the two algorithms, as well as for the approximation of genetic distance matrices, which will be described subsequently. The average runtime for a single genetic distance calculation was obtained by calculating a genetic distance matrix covering 1,250 sequences. The calculation of larger distance matrices was then extrapolated on the basis of this average. As the algorithms scale quadratically, the modified algorithm exhibited significant runtime improvements, particularly when dealing with larger numbers of sequences.
+
+\begin{table}[H]
+    \caption[Runtime comparison for calculating $D$\textsubscript{gen}, $D$\textsubscript{mod} and $\tilde{D}$\textsubscript{gen}]{Runtime comparison for calculating $D$\textsubscript{gen}, $D$\textsubscript{mod} and $\tilde{D}$\textsubscript{gen}. The observed aggregate, nrw\_2022, was downsampled to the presented sample sizes. Runtimes for $D$\textsubscript{gen} and $D$\textsubscript{mod} of sample sizes greater than 1,250 were extrapolated based on the runtime of a single distance calculation averaged over the runtime for calcuating $D$\textsubscript{gen} and $D$\textsubscript{mod} for 1,250 sequences. The runtimes for $\tilde{D}$\textsubscript{gen} include the generation of mutation encodings with \acrshort{nff} and \acrshort{snvff}.} 
+    \centering
+    \begin{tabular}{  Sc || Sc Sc Sc } 
+    Sample size & $D$\textsubscript{gen} & $D$\textsubscript{mod} & $\tilde{D}$\textsubscript{gen} \\
+    \hline
+    1,250 & 23.4 min & 3.19 min & 28.25 s\\
+    2,500 &$\sim 93.6$ min&$\sim 12.77$ min & 42.47 s\\
+    5,000 &$\sim372$ min&$\sim 51.1$ min & 1.58 min\\
+    10,000 &$\sim 25$ h&$\sim 3.4$ h & 5.89 min\\
+    20,000 &$\sim 100$ h&$\sim 13.6$ h & 28.97 min\\
+    \end{tabular} 
+    \label{table:algorithm_and_approximation_runtime_comparison}
+\end{table}
+
+Although the modified algorithm was around 20 minutes faster for 1,250 sequences, the runtime difference would increase significantly for larger distance matrices. For 5,000 sequences, the GENTRAIN algorithm would take around 6 hours, whereas the modified algorithm would complete the same task in approximately 50 minutes. Even larger distance matrices would result in very significant runtime drops, so calculating a distance matrix for 20,000 sequences would take around 13.6 hours using the modified variant, compared to approximately 100 hours required by the GENTRAIN algorithm. When genetic distance matrices were approximated, the runtime to calculate genetic distance matrices decreased significantly. So an aggregate of size 1,250 could be processed in around 15~\% compared to the modified algorithm, while for an aggregate of size 5,000 this percentage amounted to around 3~\%. Comparable percentage savings in terms of runtime could be observed for even larger aggregates. Therefore, the saved runtime increased based on the number of sequences for sample sizes ranging from 1,250 to 5,000. However, this increase saturated around 3~\% when considering even larger numbers of sequences.
+
+The number of remaining calculations using \acrshort{ccs} is driven by the calculation rate. In addition to the application of the search strategies, preparation steps are necessary to identify relevant candidate pairs. These are the generation of mutation encodings and the approximation of genetic distances, which form the basis for the identification of relevant candidates. Furthermore, the Prim algorithm shows a shorter runtime when it is executed on sparse graphs. The runtime for all steps involved (except the Nextclade mutation calling) in generating \acrshortpl{mst} for nrw\_2022 using \acrshort{ccs} with depth search is shown in Table \ref{table:accurate_cs_runtime}. Overall, the approach resulted in an immense reduction in runtime, particularly when a calculation rate of 0.05 was used. As the sample size increased, the remaining precentage of runtime using the \acrshort{ccs} approach decreased further. It was also evident how the calculation rate affected the runtime of the Prim algorithm, as higher calculation rates produced denser matrices.
+
+\begin{table}[ht!]
+    \caption[Runtime for generating $T$\textsubscript{CCS} using different calculation rates]{Runtime for generating $T$\textsubscript{CCS} using different calculation rates. The observed aggregate, nrw\_2022, was downsampled to different sample sizes (1,250, 2,500 and 5,000).}
+        \centering
+        \begin{threeparttable}
+        \resizebox{\textwidth}{!}{%
+            \begin{tabular}{ Sc | Sc Sc Sc | Sc Sc Sc  } 
+            Calculation rate & \multicolumn{3}{Sc|}{0.05} & \multicolumn{3}{Sc}{0.2}\\
+            \hline
+            Sample size & 1,250 & 2,500 & 5,000 & 1,250 & 2,500 & 5,000  \\
+            \hline\hline
+            Mutation encoding & 27.59 s & 37.45 s & 62.13 s & 27.59 s & 37.45 s & 62.13 s \\
+            Approximation & 1.25 s & 8.23 s & 50.64 s & 1.35 s & 8.26 s & 50.03 s \\
+            Depth search & 0.44 s & 1.95 s& 8.73 s & 0.48 s & 2.01 s& 9.04 s\\
+            Distance matrix &$\sim 9.57$ s&$\sim 38.31$ s& $\sim 153.28$ s & $\sim 38.29$ s&$\sim 153.25$ s& $\sim 613.12$ s\\        
+            Prim algorithm & 0.08 s &0.57 s&3.58 s & 0.41 s&2.23 s& 13.08 s\\
+            \hline\hline
+            Total &$\sim 38.93$ s &$\sim 86.51$ s& $\sim 278.36$ s &$\sim 68.12$ s&$\sim 203.2$ s&$\sim 747.4$ s\\
+            &($\sim 20.1$~\%\textsuperscript{a})&($\sim 11.1$~\%\textsuperscript{a})&($\sim 8.9$~\%\textsuperscript{a})&($\sim 35.2$~\%\textsuperscript{a})&($\sim 26.1$~\%\textsuperscript{a})&($\sim 23.9$~\%\textsuperscript{a})\\
+            \end{tabular}
+        }
+        \begin{tablenotes}[flushleft]
+                \small
+                \item[a] Percentage runtime remaining relative to the generation of $T$\textsubscript{mod}
+            \end{tablenotes}
+        \end{threeparttable}
+        \label{table:accurate_cs_runtime}
+\end{table}
+
+To overcome quadratic scaling \acrshort{acs} was approached. Table \ref{table:approximate_cs_004_runtime} compares the runtime resulting of \acrshort{ccs} and \acrshort{acs} using AND/OR-\acrshort{lsh} for nrw\_2022 with 10,000 sequences. For this comparison, configurations with comparable infection recall and community \acrshort{ari} scores were observed. \acrshort{ccs} was performed with a calculation rate of 0.3 and a hash length of 3,000 was used for AND/OR-\acrshort{lsh}, which executed 32 \acrshort{lsh} iterations. The percentage savings provided are relative to the runtime of the modified algorithm, including the generation of the \acrshort{mst}.
+It became evident that \acrshort{acs} yielded a lower runtime even though the remaining calculation rate was higher compared to \acrshort{acs}. The most significant difference was observed during the candidate search, where \acrshort{acs} completed the task around 10 minutes faster. Both approaches were significantly faster than the modified algorithm. For \acrshort{ccs}, 8.21~\% of the runtime remained for the modified algorithm, while for \acrshort{acs}, it was 4.71~\%. The modified algorithm already required less than 15~\% of the runtime of the original GENTRAIN algorithm.
+
+\begin{table}[H]
+    \caption[Runtime comparison for generating $T$\textsubscript{CCS} and $T$\textsubscript{ACS}]{Runtime comparison for generating $T$\textsubscript{CCS} and $T$\textsubscript{ACS} using AND/OR-\acrshort{lsh}. The observed aggregate, nrw\_2022, was downsampled to 10,000 sequences. \acrshort{ccs} was performed using a calculation rate of 0.3 resulting in $R_{inf} = 0.845$ and $\text{ARI}_{com} = 0.297$. For AND/OR-\acrshort{lsh} a hash length of 3,000 and 32 \acrshort{lsh} iterations were used, leading to $r_{calc} = 0.036$, $R_{inf} = 0.85$ and $\text{ARI}_{com} = 0.296$. The total runtime includes the runtime for generating the mutation encoding, which lasted 1.92 min.}
+    \centering
+    \begin{threeparttable}
+        \resizebox{\textwidth}{!}{%
+        \begin{tabular}{ Sc || Sc Sc Sc || Sc} 
+        Method & Candidate search & Distance matrix & Prim algorithm & Total \\
+        \hline
+        \acrshort{ccs} &11.56 min&$\sim 6.13$ min&1.16 min &20.76 min (8.21~\%\textsuperscript{a})\\
+        \acrshort{acs} &1.41 min&$\sim7.4$ min&1.17 min &11.9 min (4.71~\%\textsuperscript{a})\\
+        \end{tabular}
+        }
+        \begin{tablenotes}[flushleft]
+                \small
+                \item[a] Percentage runtime remaining relative to the generation of $T$\textsubscript{mod}
+            \end{tablenotes}
+        \end{threeparttable}
+        \label{table:approximate_cs_004_runtime}
+\end{table}
+
+In order to assess whether AND/OR-\acrshort{lsh} empirically attained a subquadratic runtime, Figure \ref{fig:subquadratic_scaling} shows a logarithmic plot with sample sizes on the x-axis and the resulting runtimes on the y-axis. Sample sizes of up to 25,000 were compared by downsampling the aggregate nrw\_2022. AND/OR-\acrshort{lsh} was performed with a hash length of $\frac{L_{encoding}}{2}$ and 32 \acrshort{lsh} iterations, as this configuration yielded the most promising results for sample sizes of 5,000 and 10,000. To clarify the context of time complexity, the corresponding runtime increases for linearithmic ($nlogn$) and quadratic ($n^2$) scaling are also provided. The slope of the empirical fit for the AND/OR-\acrshort{lsh} runtimes is 1.46, indicating a subquadratic runtime between $O(nlogn)$ and $O(n^2)$.
+
+\begin{figure}[H]
+  \centering
+    \includesvg[width=\textwidth]{subquadratic_scaling}
+    \caption[Subquadratic scaling of AND/OR-\acrshort{lsh}]{Subquadratic scaling of AND/OR-\acrshort{lsh}. The observed aggregate, nrw\_2022, was downsampled to the presented sample sizes. Hash length was $\frac{L_{encoding}}{2}$ with 32 \acrshort{lsh} iteration. The axes are scaled logarithmically, and the corresponding traces for quadratic and linearithmic scaling provide context regarding time complexity.}
+  \label{fig:subquadratic_scaling}
+\end{figure}
